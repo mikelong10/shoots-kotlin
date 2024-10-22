@@ -1,7 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    kotlin("plugin.serialization") version "1.9.0"
+    alias(libs.plugins.compose.compiler)
+    kotlin("plugin.serialization") version "2.0.20"
 }
 
 android {
@@ -39,9 +40,6 @@ android {
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
     }
     packaging {
         resources {

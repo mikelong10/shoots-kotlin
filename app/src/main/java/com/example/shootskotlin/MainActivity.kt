@@ -27,14 +27,16 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 
 val supabase = createSupabaseClient(
-    supabaseUrl = "https://xyzcompany.supabase.co",
+    supabaseUrl = "https://pbtuazoajskenudiateq.supabase.co",
     supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBidHVhem9hanNrZW51ZGlhdGVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk1NzA0NzksImV4cCI6MjA0NTE0NjQ3OX0._Lp1oetPmmaPIjqKahh73YN_gTYRCavDRqxpxIPkSNE"
 ) {
     install(Postgrest)
 }
 
+@Serializable
 data class Country(
     val id: Int,
     val name: String,
