@@ -1,9 +1,5 @@
 package com.shoots.shoots_ui.ui.user
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,12 +21,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
@@ -39,22 +34,11 @@ import com.shoots.shoots_ui.ui.auth.AuthState
 import com.shoots.shoots_ui.ui.auth.AuthViewModel
 import com.shoots.shoots_ui.ui.auth.AuthViewModelFactory
 
-class UserFragment : Fragment() {
-    private val viewModel: AuthViewModel by viewModels({ requireActivity() }) {
-        AuthViewModelFactory(requireContext())
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setContent {
-                UserContent(viewModel = viewModel)
-            }
-        }
-    }
+@Composable
+fun UserFragment(
+    viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(LocalContext.current))
+) {
+    UserContent(viewModel = viewModel)
 }
 
 @OptIn(ExperimentalGlideComposeApi::class)

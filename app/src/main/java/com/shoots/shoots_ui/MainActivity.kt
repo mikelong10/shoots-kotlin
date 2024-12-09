@@ -8,7 +8,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.shoots.shoots_ui.data.remote.NetworkModule
 import com.shoots.shoots_ui.ui.nav.AppNavHost
