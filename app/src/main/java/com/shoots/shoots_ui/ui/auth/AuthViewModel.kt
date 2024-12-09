@@ -35,25 +35,16 @@ class AuthViewModel(
 
     private fun checkLocalUser() {
         viewModelScope.launch {
+            _authState.value = AuthState.Loading
             try {
-                val localUser = userDao.getUser()
-                if (localUser != null) {
-                    // Convert UserEntity to User
-                    _authState.value = AuthState.Authenticated(
-                        User(
-                            id = localUser.id,
-                            email = localUser.email,
-                            name = localUser.name,
-                            profile_picture = localUser.profilePicture,
-                            inserted_at = localUser.insertedAt,
-                            updated_at = localUser.updatedAt
-                        )
-                    )
+                val user = userDao.getUser()
+                if (user != null) {
+                    _authState.value = AuthState.Authenticated(user.toUser())
                 } else {
                     _authState.value = AuthState.NotAuthenticated
                 }
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Error checking local user")
+                _authState.value = AuthState.NotAuthenticated
             }
         }
     }
@@ -63,8 +54,14 @@ class AuthViewModel(
             try {
                 _authState.value = AuthState.Loading
                 val response = apiService.login(LoginRequest(email, password))
-                saveUserLocally(response)
-                _authState.value = AuthState.Authenticated(response.user)
+                if (response.success) {
+                    println(response)
+                    val userEntity = UserEntity.fromAuthData(response.data)
+                    userDao.insertUser(userEntity)
+                    _authState.value = AuthState.Authenticated(response.data.user)
+                } else {
+                    _authState.value = AuthState.Error(response.message)
+                }
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Unknown error occurred")
             }
@@ -76,8 +73,13 @@ class AuthViewModel(
             try {
                 _authState.value = AuthState.Loading
                 val response = apiService.register(RegisterRequest(email, password, name))
-                saveUserLocally(response)
-                _authState.value = AuthState.Authenticated(response.user)
+                if (response.success) {
+                    val userEntity = UserEntity.fromAuthData(response.data)
+                    userDao.insertUser(userEntity)
+                    _authState.value = AuthState.Authenticated(response.data.user)
+                } else {
+                    _authState.value = AuthState.Error(response.message)
+                }
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Unknown error occurred")
             }
@@ -89,10 +91,15 @@ class AuthViewModel(
             try {
                 _authState.value = AuthState.Loading
                 val response = apiService.googleAuth(GoogleAuthRequest(idToken))
-                saveUserLocally(response)
-                _authState.value = AuthState.Authenticated(response.user)
+                if (response.success) {
+                    val userEntity = UserEntity.fromAuthData(response.data)
+                    userDao.insertUser(userEntity)
+                    _authState.value = AuthState.Authenticated(response.data.user)
+                } else {
+                    _authState.value = AuthState.Error(response.message)
+                }
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Google Sign-In failed")
+                _authState.value = AuthState.Error(e.message ?: "Unknown error occurred")
             }
         }
     }
@@ -100,33 +107,26 @@ class AuthViewModel(
     private suspend fun saveUserLocally(response: LoginResponse) {
         userDao.insertUser(
             UserEntity(
-                id = response.user.id,
-                email = response.user.email,
-                name = response.user.name,
-                profilePicture = response.user.profile_picture,
-                accessToken = response.token,
-                insertedAt = response.user.inserted_at,
-                updatedAt = response.user.updated_at
+                id = response.data.user.id,
+                email = response.data.user.email,
+                name = response.data.user.name,
+                profilePicture = response.data.user.profile_picture,
+                accessToken = response.data.accessToken,
+                refreshToken = response.data.refreshToken,
+                insertedAt = response.data.user.inserted_at,
+                updatedAt = response.data.user.updated_at
             )
         )
+    }
+
+    fun updateAuthState(state: AuthState) {
+        _authState.value = state
     }
 
     fun logout() {
         viewModelScope.launch {
             userDao.deleteUser()
             _authState.value = AuthState.NotAuthenticated
-        }
-    }
-
-    fun fetchUserData() {
-        viewModelScope.launch {
-            try {
-                _authState.value = AuthState.Loading
-                val user = apiService.getSelf()
-                _authState.value = AuthState.Authenticated(user)
-            } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Unknown error occurred")
-            }
         }
     }
 }

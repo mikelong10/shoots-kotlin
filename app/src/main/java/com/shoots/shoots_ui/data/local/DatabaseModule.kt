@@ -12,7 +12,9 @@ object DatabaseModule {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "app_database"
-            ).build().also { database = it }
+            )
+                .fallbackToDestructiveMigration()
+                .build().also { database = it }
         }
     }
 }

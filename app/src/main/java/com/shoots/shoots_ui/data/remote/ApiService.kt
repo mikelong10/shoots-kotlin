@@ -3,7 +3,8 @@ package com.shoots.shoots_ui.data.remote
 import com.shoots.shoots_ui.data.model.LoginRequest
 import com.shoots.shoots_ui.data.model.LoginResponse
 import com.shoots.shoots_ui.data.model.RegisterRequest
-import com.shoots.shoots_ui.data.model.User
+import com.shoots.shoots_ui.data.model.RegisterResponse
+import com.shoots.shoots_ui.data.model.UserResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -20,8 +21,8 @@ interface ApiService {
     suspend fun login(@Body loginRequest: LoginRequest): LoginResponse
 
     @POST("auth/register")
-    suspend fun register(@Body registerRequest: RegisterRequest): LoginResponse
+    suspend fun register(@Body registerRequest: RegisterRequest): RegisterResponse
 
     @GET("user")
-    suspend fun getSelf(): User
+    suspend fun getSelf(): UserResponse
 }

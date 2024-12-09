@@ -1,5 +1,13 @@
 package com.shoots.shoots_ui.data.model
 
+// Generic API Response wrapper
+data class ApiResponse<T>(
+    val success: Boolean,
+    val message: String,
+    val data: T
+)
+
+// Auth related classes
 data class LoginRequest(
     val email: String,
     val password: String
@@ -11,9 +19,10 @@ data class RegisterRequest(
     val name: String
 )
 
-data class LoginResponse(
+data class AuthData(
     val user: User,
-    val token: String
+    val accessToken: String,
+    val refreshToken: String
 )
 
 data class User(
@@ -24,3 +33,8 @@ data class User(
     val inserted_at: String,
     val updated_at: String?
 )
+
+// Type aliases for common response types
+typealias LoginResponse = ApiResponse<AuthData>
+typealias RegisterResponse = ApiResponse<AuthData>
+typealias UserResponse = ApiResponse<User>

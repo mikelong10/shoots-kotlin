@@ -2,6 +2,7 @@ package com.shoots.shoots_ui.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.shoots.shoots_ui.data.model.AuthData
 import com.shoots.shoots_ui.data.model.User
 
 @Entity(tableName = "users")
@@ -12,6 +13,7 @@ data class UserEntity(
     val name: String,
     val profilePicture: String?,
     val accessToken: String,
+    val refreshToken: String,
     val insertedAt: String,
     val updatedAt: String?
 ) {
@@ -27,15 +29,16 @@ data class UserEntity(
     }
 
     companion object {
-        fun fromUser(user: User, token: String): UserEntity {
+        fun fromAuthData(authData: AuthData): UserEntity {
             return UserEntity(
-                id = user.id,
-                email = user.email,
-                name = user.name,
-                profilePicture = user.profile_picture,
-                accessToken = token,
-                insertedAt = user.inserted_at,
-                updatedAt = user.updated_at
+                id = authData.user.id,
+                email = authData.user.email,
+                name = authData.user.name,
+                profilePicture = authData.user.profile_picture,
+                accessToken = authData.accessToken,
+                refreshToken = authData.refreshToken,
+                insertedAt = authData.user.inserted_at,
+                updatedAt = authData.user.updated_at
             )
         }
     }
