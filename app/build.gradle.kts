@@ -23,12 +23,12 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_URL", "\"http://192.168.1.170:3000/\"")
-            buildConfigField("String", "GOOGLE_CLIENT_ID", "\"your-google-client-id.apps.googleusercontent.com\"")
+            buildConfigField("String", "GOOGLE_CLIENT_ID", "\"697607574955-h622i8vloo6ldr0r15vahvu4iandgvve.apps.googleusercontent.com\"")
         }
         release {
             isMinifyEnabled = false
-            buildConfigField("String", "API_URL", "\"https://your-production-api.com/\"")
-            buildConfigField("String", "GOOGLE_CLIENT_ID", "\"your-google-client-id.apps.googleusercontent.com\"")
+            buildConfigField("String", "API_URL", "\"https://shoots-api.onrender.com/\"")
+            buildConfigField("String", "GOOGLE_CLIENT_ID", "\"697607574955-h622i8vloo6ldr0r15vahvu4iandgvve.apps.googleusercontent.com\"")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
 
