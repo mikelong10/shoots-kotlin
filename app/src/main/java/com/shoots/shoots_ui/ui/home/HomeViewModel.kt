@@ -13,10 +13,11 @@ import kotlinx.coroutines.launch
 sealed class HomeState {
     object Loading : HomeState()
     data class Success(
-        val groups: List<Group>, 
+        val groups: List<Group>,
         val myGroups: List<Group>,
         val screenTime: ScreenTime?
     ) : HomeState()
+
     data class Error(val message: String) : HomeState()
 }
 
@@ -44,12 +45,16 @@ class HomeViewModel(
         viewModelScope.launch {
             _homeState.value = HomeState.Loading
             try {
+                // Get all groups first
+                val allGroups = groupRepository.listGroups()
+                
+                // Get my groups and create a set of their IDs
                 val myGroups = groupRepository.listMyGroups()
                 val myGroupIds = myGroups.map { it.id }.toSet()
-
-                val allGroups = groupRepository.listGroups()
+                
+                // Filter available groups to exclude my groups
                 val availableGroups = allGroups.filterNot { it.id in myGroupIds }
-
+                
                 val screenTime = screenTimeRepository.getSelfScreenTime()
 
                 _homeState.value = HomeState.Success(
@@ -90,15 +95,9 @@ class HomeViewModel(
     fun createGroup(name: String, screenTimeGoal: Int, stake: Double) {
         viewModelScope.launch {
             try {
-                val newGroup = groupRepository.createGroup(name, screenTimeGoal, stake)
+                groupRepository.createGroup(name, screenTimeGoal, stake)
                 hideCreateGroupDialog()
-                
-                val currentState = _homeState.value
-                if (currentState is HomeState.Success) {
-                    _homeState.value = currentState.copy(
-                        myGroups = currentState.myGroups + newGroup
-                    )
-                }
+                loadHomeData()
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to create group")
             }
@@ -120,11 +119,23 @@ class HomeViewModel(
     fun enterScreenTime(screenTime: Int) {
         viewModelScope.launch {
             try {
+                if (screenTime < 0) {
+                    _homeState.value = HomeState.Error("Screen time must be a positive number")
+                    return@launch
+                }
+                
                 screenTimeRepository.enterScreenTime(screenTime)
                 hideEnterScreenTimeDialog()
                 loadHomeData()
             } catch (e: Exception) {
-                _homeState.value = HomeState.Error(e.message ?: "Failed to enter screen time")
+                val errorMessage = when {
+                    e.message?.contains("already submitted") == true -> 
+                        "You have already submitted time for this week"
+                    e.message?.contains("must be an integer") == true ->
+                        "Screen time must be an integer"
+                    else -> e.message ?: "Failed to enter screen time"
+                }
+                _homeState.value = HomeState.Error(errorMessage)
             }
         }
     }

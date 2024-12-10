@@ -16,9 +16,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -117,162 +119,155 @@ fun HomeScreen(
     authModel: AuthViewModel
 ) {
     val authState by authModel.authState.collectAsStateWithLifecycle()
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Home") },
-                actions = {
-                    IconButton(onClick = onProfileClick) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Home") },
+                    actions = {
                         when (val state = authState) {
                             is AuthState.Authenticated -> {
-                                val user = state.user
                                 GlideImage(
-                                    model = user.profile_picture ?: R.drawable.default_avatar,
+                                    model = state.user.profile_picture,
                                     contentDescription = "Profile Picture",
                                     modifier = Modifier
-                                        .size(120.dp)
+                                        .size(40.dp)
                                         .clip(CircleShape)
-                                        .border(
-                                            2.dp,
-                                            MaterialTheme.colorScheme.primary,
-                                            CircleShape
-                                        ),
+                                        .clickable { onProfileClick() }
+                                        .padding(4.dp),
                                     loading = placeholder(R.drawable.default_avatar)
                                 )
                             }
-
                             is AuthState.Error -> TODO()
                             AuthState.Initial -> TODO()
                             AuthState.NotAuthenticated -> TODO()
                             AuthState.Loading -> TODO()
                         }
                     }
-                }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = onCreateGroupClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
-                ) {
-                    Text("Create Group")
-                }
-                Button(
-                    onClick = onJoinGroupClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                ) {
-                    Text("Join Group")
-                }
+                )
             }
-
-            when (homeState) {
-                is HomeState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = onCreateGroupClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp)
                     ) {
-                        CircularProgressIndicator()
+                        Text("Create Group")
+                    }
+                    Button(
+                        onClick = onJoinGroupClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 8.dp)
+                    ) {
+                        Text("Join Group")
                     }
                 }
 
-                is HomeState.Success -> {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                when (homeState) {
+                    is HomeState.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
                         ) {
-                            ScreenTimeCard(screenTime = homeState.screenTime?.submitted_time)
+                            CircularProgressIndicator()
+                        }
+                    }
 
-                            if (homeState.groups.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        "You are not in any groups, create or join one to get started!",
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            } else {
-                                val scrollState = rememberScrollState()
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.verticalScroll(scrollState)
-                                ) {
-                                    if (homeState.myGroups.isNotEmpty()) {
-                                        Header("My Groups")
-                                        homeState.myGroups.forEach { group ->
-                                            GroupCard(
-                                                group = group,
-                                                onClick = { onGroupClick(group.id) }
-                                            )
-                                        }
-                                    }
-                                    Header("Available Groups")
-                                    homeState.groups.forEach { group ->
-                                        GroupCard(
-                                            group = group,
-                                            onClick = { onGroupClick(group.id) }
+                    is HomeState.Success -> {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                ScreenTimeCard(screenTime = homeState.screenTime?.submitted_time)
+
+                                if (homeState.myGroups.isEmpty() && homeState.groups.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            "You are not in any groups, create or join one to get started!",
+                                            textAlign = TextAlign.Center
                                         )
                                     }
+                                } else {
+                                    val scrollState = rememberScrollState()
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.verticalScroll(scrollState)
+                                    ) {
+                                        if (homeState.myGroups.isNotEmpty()) {
+                                            Header("My Groups")
+                                            homeState.myGroups.forEach { group ->
+                                                GroupCard(
+                                                    group = group,
+                                                    onClick = { onGroupClick(group.id) }
+                                                )
+                                            }
+                                        }
+                                        
+                                        // Only show Available Groups if there are groups the user isn't in
+                                        if (homeState.groups.isNotEmpty()) {
+                                            Header("Available Groups")
+                                            homeState.groups.forEach { group ->
+                                                GroupCard(
+                                                    group = group,
+                                                    onClick = { onGroupClick(group.id) }
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
+                    }
 
-                        if (homeState.screenTime == null) {
-                            Button(
-                                onClick = onEnterScreenTimeClick,
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(16.dp),
-                                colors = ButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiary,
-                                    contentColor = MaterialTheme.colorScheme.onTertiary,
-                                    disabledContainerColor = MaterialTheme.colorScheme.surfaceDim,
-                                    disabledContentColor = MaterialTheme.colorScheme.onTertiary
-                                )
-                            ) {
-                                Text("Enter Screen Time")
-                            }
+                    is HomeState.Error -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = homeState.message,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
                 }
+            }
+        }
 
-                is HomeState.Error -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            homeState.message,
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                        Button(
-                            onClick = { viewModel.loadHomeData() },
-                            modifier = Modifier.padding(top = 8.dp)
-                        ) {
-                            Text("Retry")
-                        }
-                    }
+        // Floating Enter Screen Time button
+        if (homeState is HomeState.Success && homeState.screenTime == null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+            ) {
+                Button(
+                    onClick = onEnterScreenTimeClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary
+                    )
+                ) {
+                    Text("Enter Screen Time")
                 }
             }
         }
@@ -309,6 +304,13 @@ fun ScreenTimeCard(screenTime: Int?) {
             }
         }
     }
+}
+
+@Composable
+private fun formatDisplayScreenTime(minutes: Int): String {
+    val hours = minutes / 60
+    val remainingMinutes = minutes % 60
+    return "${hours}hr  ${remainingMinutes}min"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
