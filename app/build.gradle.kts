@@ -22,7 +22,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_URL", "\"http://10.0.0.164:3000/\"")
+            buildConfigField("String", "API_URL", "\"https://shoots-api.onrender.com/\"")
             buildConfigField("String", "GOOGLE_CLIENT_ID", "\"697607574955-h622i8vloo6ldr0r15vahvu4iandgvve.apps.googleusercontent.com\"")
         }
         release {
@@ -31,6 +31,8 @@ android {
             buildConfigField("String", "GOOGLE_CLIENT_ID", "\"697607574955-h622i8vloo6ldr0r15vahvu4iandgvve.apps.googleusercontent.com\"")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
+
+        debug {}
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

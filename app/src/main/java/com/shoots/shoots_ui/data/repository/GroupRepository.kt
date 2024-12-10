@@ -17,6 +17,15 @@ class GroupRepository(
         }
     }
 
+    suspend fun listMyGroups(): List<Group> {
+        val response = apiService.listMyGroups()
+        if (response.success) {
+            return response.data
+        } else {
+            throw Exception(response.message)
+        }
+    }
+
     suspend fun getGroup(id: Int): Group {
         val response = apiService.getGroup(id)
         if (response.success) {

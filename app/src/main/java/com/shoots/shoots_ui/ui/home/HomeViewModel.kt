@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 
 sealed class HomeState {
     object Loading : HomeState()
-    data class Success(val groups: List<Group>) : HomeState()
+    data class Success(val groups: List<Group>, val myGroups: List<Group>) : HomeState()
     data class Error(val message: String) : HomeState()
 }
 
@@ -34,8 +34,12 @@ class HomeViewModel(
         viewModelScope.launch {
             _homeState.value = HomeState.Loading
             try {
-                val groups = repository.listGroups()
-                _homeState.value = HomeState.Success(groups)
+                var groups = repository.listGroups()
+                val myGroups = repository.listMyGroups()
+                val groupIDs = myGroups.map { it.id }.toSet()
+                groups = groups.filter { it.id !in groupIDs }
+
+                _homeState.value = HomeState.Success(groups, myGroups)
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to load groups")
             }

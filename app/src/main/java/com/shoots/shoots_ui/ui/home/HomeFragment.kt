@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -141,10 +144,20 @@ fun HomeScreen(
                             )
                         }
                     } else {
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        val scrollState = rememberScrollState()
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.verticalScroll(scrollState)
                         ) {
-                            items(homeState.groups) { group ->
+                            Header("My Groups")
+                            homeState.myGroups.forEach { group ->
+                                GroupCard(
+                                    group = group,
+                                    onClick = { onGroupClick(group.id) }
+                                )
+                            }
+                            Header("Available Groups")
+                            homeState.groups.forEach { group ->
                                 GroupCard(
                                     group = group,
                                     onClick = { onGroupClick(group.id) }
@@ -176,6 +189,12 @@ fun HomeScreen(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Header(text: String)  {
+    Text(text)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -45,6 +45,10 @@ interface ApiService {
     @GET("groups")
     suspend fun listGroups(): GroupsResponse
 
+    // Group endpoints
+    @GET("groups?self=true")
+    suspend fun listMyGroups(): GroupsResponse
+
     @GET("groups/{id}")
     suspend fun getGroup(@Path("id") id: Int): GroupResponse
 
