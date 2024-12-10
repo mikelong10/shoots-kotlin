@@ -51,6 +51,7 @@ import com.shoots.shoots_ui.data.model.Group
 import com.shoots.shoots_ui.ui.auth.AuthState
 import com.shoots.shoots_ui.ui.auth.AuthViewModel
 import com.shoots.shoots_ui.ui.formatDisplayScreenTime
+import com.shoots.shoots_ui.ui.formatUSD
 
 @Composable
 fun HomeFragment(
@@ -346,7 +347,7 @@ fun GroupCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Stake: $${group.stake}",
+                text = "Stake: ${formatUSD(group.stake)}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }
