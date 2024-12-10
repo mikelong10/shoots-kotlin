@@ -117,9 +117,6 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("Home") },
                 actions = {
-                    IconButton(onClick = onCreateGroupClick) {
-                        Text("+")
-                    }
                     IconButton(onClick = onProfileClick) {
                         when (val state = authState) {
                             is AuthState.Authenticated -> {
