@@ -151,6 +151,9 @@ fun GroupScreen(
                                 modifier = Modifier.padding(bottom = 2.dp)
                             )
                             Text("Invite Code: " + groupState.group.code, modifier = Modifier.padding(bottom = 16.dp))
+                            if (groupState.weeklyRankings.filter { ranking: Ranking ->
+                                    ranking.user.id == state.user.id }.isEmpty())
+                                SubmitYourTimeCard(onAddScreenTime)
                         } else {
                             Text(
                                 text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
@@ -164,9 +167,6 @@ fun GroupScreen(
                             HistoricalRankingsList(historicalRankings = groupState.historicalRankings)
                         } else {
                             if (groupState.weeklyRankings.isEmpty()) NoEntriesCard()
-                            if (groupState.weeklyRankings.filter { ranking: Ranking ->
-                                ranking.user.id == state.user.id }.isEmpty())
-                                SubmitYourTimeCard(onAddScreenTime)
                             LeaderboardList(rankings = groupState.weeklyRankings)
                         }
                     }
