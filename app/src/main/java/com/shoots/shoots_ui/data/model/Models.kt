@@ -34,7 +34,29 @@ data class User(
     val updated_at: String?
 )
 
+data class Group(
+    val id: Int,
+    val screen_time_goal: Int,
+    val code: String,
+    val stake: Double,
+    val name: String,
+    val inserted_at: String,
+    val updated_at: String?
+)
+
+data class CreateGroupRequest(
+    val name: String,
+    val screen_time_goal: Int,
+    val stake: Double
+)
+
+data class JoinGroupRequest(
+    val code: String
+)
+
 // Type aliases for common response types
 typealias LoginResponse = ApiResponse<AuthData>
 typealias RegisterResponse = ApiResponse<AuthData>
 typealias UserResponse = ApiResponse<User>
+typealias GroupResponse = ApiResponse<Group>
+typealias GroupsResponse = ApiResponse<List<Group>>

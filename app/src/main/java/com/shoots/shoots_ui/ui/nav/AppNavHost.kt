@@ -7,13 +7,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.shoots.shoots_ui.ui.NavigationItem
 import com.shoots.shoots_ui.ui.auth.AuthFragment
 import com.shoots.shoots_ui.ui.auth.AuthState
 import com.shoots.shoots_ui.ui.auth.AuthViewModel
 import com.shoots.shoots_ui.ui.auth.AuthViewModelFactory
+import com.shoots.shoots_ui.ui.home.HomeFragment
+import com.shoots.shoots_ui.ui.home.HomeViewModel
+import com.shoots.shoots_ui.ui.home.HomeViewModelFactory
 import com.shoots.shoots_ui.ui.user.UserFragment
 
 @Composable
@@ -23,21 +28,25 @@ fun AppNavHost(
 ) {
     val context = LocalContext.current
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(context))
-    val authState by authViewModel.authState.collectAsState(initial = AuthState.Initial)
+    val authState by authViewModel.authState.collectAsState()
 
-    // Handle authentication state changes
+    println("Current auth state: $authState") // Debug log
+
     LaunchedEffect(authState) {
+        println("LaunchedEffect triggered with state: $authState") // Debug log
         when (authState) {
-            is AuthState.NotAuthenticated -> {
-                navController.navigate(NavigationItem.Auth.route) {
-                    // Pop up to the start destination to remove everything from the back stack
-                    popUpTo(0) { inclusive = true }
+            is AuthState.Authenticated -> {
+                println("Navigating to Home") // Debug log
+                navController.navigate(NavigationItem.Home.route) {
+                    popUpTo(NavigationItem.Auth.route) { inclusive = true }
                 }
             }
-            is AuthState.Authenticated -> {
-                navController.navigate(NavigationItem.User.route) {
-                    // Remove Auth screen from back stack when authenticated
-                    popUpTo(NavigationItem.Auth.route) { inclusive = true }
+            is AuthState.NotAuthenticated -> {
+                println("Navigating to Auth") // Debug log
+                if (navController.currentDestination?.route != NavigationItem.Auth.route) {
+                    navController.navigate(NavigationItem.Auth.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             }
             else -> {} // Handle other states if needed
@@ -49,17 +58,28 @@ fun AppNavHost(
         startDestination = startDestination
     ) {
         composable(NavigationItem.Auth.route) {
-            AuthFragment(
-                viewModel = authViewModel,
-                onNavigateToUser = {
-                    navController.navigate(NavigationItem.User.route) {
-                        popUpTo(NavigationItem.Auth.route) { inclusive = true }
-                    }
+            AuthFragment(viewModel = authViewModel)
+        }
+
+        composable(NavigationItem.Home.route) {
+            val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(context))
+            HomeFragment(
+                viewModel = homeViewModel,
+                onNavigateToGroup = { groupId ->
+                    navController.navigate(NavigationItem.Group.createRoute(groupId))
                 }
             )
         }
+
         composable(NavigationItem.User.route) {
             UserFragment(viewModel = authViewModel)
+        }
+
+        composable(
+            route = NavigationItem.Group.route,
+            arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+        ) {
+            // Group screen will be implemented later
         }
     }
 }

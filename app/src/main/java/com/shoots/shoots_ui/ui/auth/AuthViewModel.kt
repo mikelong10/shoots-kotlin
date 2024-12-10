@@ -32,12 +32,14 @@ class AuthViewModel(
             _authState.value = AuthState.Loading
             try {
                 val user = repository.getUser()
+                println("Initial auth check - User: $user") // Debug log
                 _authState.value = if (user != null) {
                     AuthState.Authenticated(user)
                 } else {
                     AuthState.NotAuthenticated
                 }
             } catch (e: Exception) {
+                println("Auth check error: ${e.message}") // Debug log
                 _authState.value = AuthState.Error(e.message ?: "Unknown error occurred")
             }
         }
@@ -48,8 +50,10 @@ class AuthViewModel(
             try {
                 _authState.value = AuthState.Loading
                 val user = repository.login(email, password)
+                println("Login successful - User: $user") // Debug log
                 _authState.value = AuthState.Authenticated(user)
             } catch (e: Exception) {
+                println("Login error: ${e.message}") // Debug log
                 _authState.value = AuthState.Error(e.message ?: "Login failed")
             }
         }
@@ -60,8 +64,10 @@ class AuthViewModel(
             try {
                 _authState.value = AuthState.Loading
                 val user = repository.register(email, password, name)
+                println("Registration successful - User: $user") // Debug log
                 _authState.value = AuthState.Authenticated(user)
             } catch (e: Exception) {
+                println("Registration error: ${e.message}") // Debug log
                 _authState.value = AuthState.Error(e.message ?: "Registration failed")
             }
         }
@@ -72,8 +78,10 @@ class AuthViewModel(
             try {
                 _authState.value = AuthState.Loading
                 val user = repository.googleAuth(idToken)
+                println("Google sign in successful - User: $user") // Debug log
                 _authState.value = AuthState.Authenticated(user)
             } catch (e: Exception) {
+                println("Google sign in error: ${e.message}") // Debug log
                 _authState.value = AuthState.Error(e.message ?: "Google sign in failed")
             }
         }
