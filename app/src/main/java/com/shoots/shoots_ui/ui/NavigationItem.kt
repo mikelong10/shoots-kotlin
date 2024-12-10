@@ -7,4 +7,7 @@ sealed class NavigationItem(val route: String) {
     object Group : NavigationItem("group/{groupId}") {
         fun createRoute(groupId: Int) = "group/$groupId"
     }
+    object Payout : NavigationItem("group/{groupId}/payouts") {
+        fun createRoute(groupId: Int) = "group/$groupId/payouts"
+    }
 }

@@ -15,9 +15,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -43,14 +41,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.shoots.shoots_ui.R
 import com.shoots.shoots_ui.data.model.Ranking
 import com.shoots.shoots_ui.data.model.UserHistoricalRankings
 import com.shoots.shoots_ui.ui.auth.AuthState
@@ -69,7 +70,8 @@ fun GroupFragment(
         factory = GroupViewModelFactory(LocalContext.current, groupId)
     ),
     homeViewModel: HomeViewModel,
-    authModel: AuthViewModel
+    authModel: AuthViewModel,
+    onNavigateToPayouts: (Int) -> Unit
 ) {
     val groupState by viewModel.groupState.collectAsStateWithLifecycle()
     val isHistoricalView by viewModel.isHistoricalView.collectAsStateWithLifecycle()
@@ -83,7 +85,8 @@ fun GroupFragment(
         onNavigateBack = { navController.popBackStack() },
         onJoinGroup = viewModel::joinGroup,
         onAddScreenTime = homeViewModel::showEnterScreenTimeDialog,
-        authState = authState
+        authState = authState,
+        onNavigateToPayouts = onNavigateToPayouts
     )
 
     if (isEnterScreenTimeDialogVisible) {
@@ -107,7 +110,8 @@ fun GroupScreen(
     onAddScreenTime: () -> Unit,
     onNavigateBack: () -> Unit,
     onJoinGroup: (String) -> Unit,
-    authState: AuthState
+    authState: AuthState,
+    onNavigateToPayouts: (Int) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -142,46 +146,76 @@ fun GroupScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 is GroupState.Success -> {
                     when (val state = authState) {
                         is AuthState.Authenticated -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        if (groupState.members.filter({ user -> state.user.id == user.id }).isNotEmpty()) {
-                            Text(
-                                text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.padding(bottom = 2.dp)
-                            )
-                            Text("Invite Code: " + groupState.group.code, modifier = Modifier.padding(bottom = 16.dp))
-                            if (groupState.weeklyRankings.filter { ranking: Ranking ->
-                                    ranking.user.id == state.user.id }.isEmpty())
-                                SubmitYourTimeCard(onAddScreenTime)
-                        } else {
-                            Text(
-                                text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                        }
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                            ) {
+                                if (groupState.members.filter { user -> state.user.id == user.id }
+                                        .isNotEmpty()
+                                ) {
+                                    Text(
+                                        text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        modifier = Modifier.padding(bottom = 2.dp)
+                                    )
+                                    Text(
+                                        "Invite Code: " + groupState.group.code,
+                                        modifier = Modifier.padding(bottom = 16.dp)
+                                    )
+                                    if (groupState.weeklyRankings.filter { ranking: Ranking ->
+                                            ranking.user.id == state.user.id
+                                        }.isEmpty())
+                                        SubmitYourTimeCard(onAddScreenTime)
+                                } else {
+                                    Text(
+                                        text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        modifier = Modifier.padding(bottom = 16.dp)
+                                    )
+                                }
 
-                        if (isHistoricalView) {
-                            if (groupState.historicalRankings.isEmpty()) NoEntriesCard()
-                            HistoricalRankingsList(historicalRankings = groupState.historicalRankings)
-                        } else {
-                            if (groupState.weeklyRankings.isEmpty()) NoEntriesCard()
-                            LeaderboardList(rankings = groupState.weeklyRankings)
-                        }
-                    }
-                            if (groupState.members.filter({ user -> state.user.id == user.id }).isEmpty()) {
+                                if (isHistoricalView) {
+                                    if (groupState.historicalRankings.isEmpty()) NoEntriesCard()
+                                    HistoricalRankingsList(historicalRankings = groupState.historicalRankings)
+                                } else {
+                                    if (groupState.weeklyRankings.isEmpty()) NoEntriesCard()
+                                    LeaderboardList(rankings = groupState.weeklyRankings)
+                                }
+                            }
+                            if (groupState.members.filter { user -> state.user.id == user.id }
+                                    .isNotEmpty()
+                            ) {
+                                Button(
+                                    onClick = { onNavigateToPayouts(groupState.group.id) },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiary,
+                                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                                        disabledContainerColor = MaterialTheme.colorScheme.surfaceDim,
+                                        disabledContentColor = MaterialTheme.colorScheme.onTertiary
+                                    )
+                                ) {
+                                    Text(
+                                        "Complete Week",
+                                        fontSize = 18.sp,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    )
+                                }
+                            } else {
                                 Button(
                                     onClick = { onJoinGroup(groupState.group.code) },
                                     modifier = Modifier
                                         .align(Alignment.BottomCenter)
-                                        .padding(16.dp),
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
                                     colors = ButtonColors(
                                         containerColor = MaterialTheme.colorScheme.tertiary,
                                         contentColor = MaterialTheme.colorScheme.onTertiary,
@@ -189,11 +223,14 @@ fun GroupScreen(
                                         disabledContentColor = MaterialTheme.colorScheme.onTertiary
                                     )
                                 ) {
-                                    Text("Join Group")
+                                    Text(
+                                        "Join Group",
+                                        fontSize = 18.sp,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    )
                                 }
                             }
-
-                    }
+                        }
 
                         is AuthState.Error -> TODO()
                         AuthState.Initial -> TODO()
@@ -201,6 +238,7 @@ fun GroupScreen(
                         AuthState.NotAuthenticated -> TODO()
                     }
                 }
+
                 is GroupState.Error -> {
                     Column(
                         modifier = Modifier
@@ -223,7 +261,7 @@ fun GroupScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubmitYourTimeCard(onEnterScreenTimeClick: () -> Unit){
+fun SubmitYourTimeCard(onEnterScreenTimeClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,7 +272,10 @@ fun SubmitYourTimeCard(onEnterScreenTimeClick: () -> Unit){
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("You still need to submit your time for this week!", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "You still need to submit your time for this week!",
+                style = MaterialTheme.typography.titleMedium
+            )
             Box(
                 modifier = Modifier
             ) {
@@ -308,7 +349,7 @@ fun WeeklyLeaderboard(week: String, rankings: List<Ranking>) {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
             inputFormat.timeZone = TimeZone.getTimeZone("UTC")
             val date = inputFormat.parse(week)
-            
+
             val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
             "Week of ${outputFormat.format(date)}"
         } catch (e: Exception) {
@@ -358,9 +399,9 @@ fun LeaderboardList(rankings: List<Ranking>) {
 @Composable
 fun LeaderboardItem(ranking: Ranking) {
     // Define medal colors for top 3
-    val goldColor = Color(0xFFFFD700)  // Classic gold
-    val silverColor = Color(0xFFC0C0C0) // Classic silver
-    val bronzeColor = Color(0xFFCD7F32) // Classic bronze
+    val goldColor = colorResource(R.color.gold)  // Classic gold
+    val silverColor = colorResource(R.color.silver) // Classic silver
+    val bronzeColor = colorResource(R.color.bronze) // Classic bronze
 
     // Create a list of container colors for remaining positions
     val containerColors = listOf(
@@ -378,7 +419,7 @@ fun LeaderboardItem(ranking: Ranking) {
         3 -> bronzeColor
         else -> containerColors[(ranking.rank - 4) % containerColors.size]
     }
-    
+
     // Determine if this is a medal position
     val isMedalPosition = ranking.rank <= 3
 

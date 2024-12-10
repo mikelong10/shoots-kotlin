@@ -1,6 +1,6 @@
 package com.shoots.shoots_ui.ui.home
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,16 +16,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.clickable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -54,6 +51,7 @@ import com.shoots.shoots_ui.data.model.Group
 import com.shoots.shoots_ui.ui.auth.AuthState
 import com.shoots.shoots_ui.ui.auth.AuthViewModel
 import com.shoots.shoots_ui.ui.formatDisplayScreenTime
+import com.shoots.shoots_ui.ui.formatUSD
 
 @Composable
 fun HomeFragment(
@@ -125,17 +123,27 @@ fun HomeScreen(
                     actions = {
                         when (val state = authState) {
                             is AuthState.Authenticated -> {
-                                GlideImage(
-                                    model = state.user.profile_picture,
-                                    contentDescription = "Profile Picture",
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(CircleShape)
-                                        .clickable { onProfileClick() }
-                                        .padding(4.dp),
-                                    loading = placeholder(R.drawable.default_avatar)
-                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Text(
+                                        state.user.name,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    GlideImage(
+                                        model = state.user.profile_picture,
+                                        contentDescription = "Profile Picture",
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .clickable { onProfileClick() }
+                                            .padding(4.dp),
+                                        loading = placeholder(R.drawable.default_avatar)
+                                    )
+                                }
                             }
+
                             is AuthState.Error -> TODO()
                             AuthState.Initial -> TODO()
                             AuthState.NotAuthenticated -> TODO()
@@ -217,7 +225,7 @@ fun HomeScreen(
                                                 )
                                             }
                                         }
-                                        
+
                                         // Only show Available Groups if there are groups the user isn't in
                                         if (homeState.groups.isNotEmpty()) {
                                             Header("Available Groups")
@@ -337,7 +345,7 @@ fun GroupCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Stake: $${group.stake}",
+                text = "Stake: ${formatUSD(group.stake)}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }
