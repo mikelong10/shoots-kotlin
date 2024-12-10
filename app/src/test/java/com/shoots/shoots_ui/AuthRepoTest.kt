@@ -1,3 +1,5 @@
+package com.shoots.shoots_ui
+
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
