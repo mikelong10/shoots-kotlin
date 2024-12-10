@@ -67,7 +67,7 @@ fun AppNavHost(
             val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(context))
             HomeFragment(
                 viewModel = homeViewModel,
-                onNavigateToGroup = { groupId ->
+                onNavigateToGroup = { groupId: Int ->
                     navController.navigate(NavigationItem.Group.createRoute(groupId))
                 },
                 onNavigateToProfile = {
