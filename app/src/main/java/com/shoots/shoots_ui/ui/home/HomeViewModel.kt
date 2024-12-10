@@ -3,19 +3,27 @@ package com.shoots.shoots_ui.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shoots.shoots_ui.data.model.Group
+import com.shoots.shoots_ui.data.model.ScreenTime
 import com.shoots.shoots_ui.data.repository.GroupRepository
+import com.shoots.shoots_ui.data.repository.ScreenTimeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 sealed class HomeState {
     object Loading : HomeState()
-    data class Success(val groups: List<Group>, val myGroups: List<Group>) : HomeState()
+    data class Success(
+        val groups: List<Group>,
+        val myGroups: List<Group>,
+        val screenTime: ScreenTime?
+    ) : HomeState()
+
     data class Error(val message: String) : HomeState()
 }
 
 class HomeViewModel(
-    private val repository: GroupRepository
+    private val groupRepository: GroupRepository,
+    private val screenTimeRepository: ScreenTimeRepository
 ) : ViewModel() {
     private val _homeState = MutableStateFlow<HomeState>(HomeState.Loading)
     val homeState: StateFlow<HomeState> = _homeState
@@ -26,20 +34,24 @@ class HomeViewModel(
     private val _isJoinGroupDialogVisible = MutableStateFlow(false)
     val isJoinGroupDialogVisible: StateFlow<Boolean> = _isJoinGroupDialogVisible
 
+    private val _isEnterScreenTimeDialogVisible = MutableStateFlow(false)
+    val isEnterScreenTimeDialogVisible: StateFlow<Boolean> = _isEnterScreenTimeDialogVisible
+
     init {
-        loadGroups()
+        loadHomeData()
     }
 
-    fun loadGroups() {
+    fun loadHomeData() {
         viewModelScope.launch {
             _homeState.value = HomeState.Loading
             try {
-                var groups = repository.listGroups()
-                val myGroups = repository.listMyGroups()
+                var groups = groupRepository.listGroups()
+                val myGroups = groupRepository.listMyGroups()
                 val groupIDs = myGroups.map { it.id }.toSet()
                 groups = groups.filter { it.id !in groupIDs }
+                val screenTime = screenTimeRepository.getSelfScreenTime()
 
-                _homeState.value = HomeState.Success(groups, myGroups)
+                _homeState.value = HomeState.Success(groups, myGroups, screenTime)
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to load groups")
             }
@@ -62,12 +74,20 @@ class HomeViewModel(
         _isJoinGroupDialogVisible.value = false
     }
 
+    fun showEnterScreenTimeDialog() {
+        _isEnterScreenTimeDialogVisible.value = true
+    }
+
+    fun hideEnterScreenTimeDialog() {
+        _isEnterScreenTimeDialogVisible.value = false
+    }
+
     fun createGroup(name: String, screenTimeGoal: Int, stake: Double) {
         viewModelScope.launch {
             try {
-                repository.createGroup(name, screenTimeGoal, stake)
+                groupRepository.createGroup(name, screenTimeGoal, stake)
                 hideCreateGroupDialog()
-                loadGroups()
+                loadHomeData()
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to create group")
             }
@@ -77,11 +97,23 @@ class HomeViewModel(
     fun joinGroup(code: String) {
         viewModelScope.launch {
             try {
-                repository.joinGroup(code)
+                groupRepository.joinGroup(code)
                 hideJoinGroupDialog()
-                loadGroups()
+                loadHomeData()
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to join group")
+            }
+        }
+    }
+
+    fun enterScreenTime(screenTime: Int) {
+        viewModelScope.launch {
+            try {
+                screenTimeRepository.enterScreenTime(screenTime)
+                hideEnterScreenTimeDialog()
+                loadHomeData()
+            } catch (e: Exception) {
+                _homeState.value = HomeState.Error(e.message ?: "Failed to enter screen time")
             }
         }
     }
