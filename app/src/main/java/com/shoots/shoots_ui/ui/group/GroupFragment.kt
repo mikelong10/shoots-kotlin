@@ -66,7 +66,6 @@ fun GroupFragment(
         groupState = groupState,
         isHistoricalView = isHistoricalView,
         onToggleHistoricalView = viewModel::toggleHistoricalView,
-        onAddScreenTime = viewModel::addScreenTime,
         onNavigateBack = { navController.popBackStack() }
     )
 }
@@ -77,11 +76,8 @@ fun GroupScreen(
     groupState: GroupState,
     isHistoricalView: Boolean,
     onToggleHistoricalView: () -> Unit,
-    onAddScreenTime: (Double) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    var showAddTimeDialog by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -97,9 +93,6 @@ fun GroupScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showAddTimeDialog = true }) {
-                        Icon(Icons.Default.Timer, contentDescription = "Add Screen Time")
-                    }
                     IconButton(onClick = onToggleHistoricalView) {
                         Icon(Icons.Default.History, contentDescription = "Toggle Historical View")
                     }
@@ -153,16 +146,6 @@ fun GroupScreen(
                     }
                 }
             }
-        }
-
-        if (showAddTimeDialog) {
-            AddScreenTimeDialog(
-                onDismiss = { showAddTimeDialog = false },
-                onAddTime = { time ->
-                    onAddScreenTime(time)
-                    showAddTimeDialog = false
-                }
-            )
         }
     }
 }
@@ -328,40 +311,3 @@ fun LeaderboardItem(ranking: Ranking) {
         }
     }
 }
-
-@Composable
-fun AddScreenTimeDialog(
-    onDismiss: () -> Unit,
-    onAddTime: (Double) -> Unit
-) {
-    var screenTime by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Add Screen Time") },
-        text = {
-            OutlinedTextField(
-                value = screenTime,
-                onValueChange = { screenTime = it },
-                label = { Text("Screen Time (minutes)") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Decimal
-                )
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    screenTime.toDoubleOrNull()?.let { onAddTime(it) }
-                }
-            ) {
-                Text("Add")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-} 

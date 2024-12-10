@@ -2,6 +2,7 @@ package com.shoots.shoots_ui.data.remote
 
 import com.shoots.shoots_ui.data.model.ApiResponse
 import com.shoots.shoots_ui.data.model.CreateGroupRequest
+import com.shoots.shoots_ui.data.model.CreateScreenTimeRequest
 import com.shoots.shoots_ui.data.model.GroupResponse
 import com.shoots.shoots_ui.data.model.GroupsResponse
 import com.shoots.shoots_ui.data.model.HistoricalRankingsResponse
@@ -12,6 +13,7 @@ import com.shoots.shoots_ui.data.model.RankingsResponse
 import com.shoots.shoots_ui.data.model.RegisterRequest
 import com.shoots.shoots_ui.data.model.RegisterResponse
 import com.shoots.shoots_ui.data.model.ScreenTimeResponse
+import com.shoots.shoots_ui.data.model.ScreenTimeListResponse
 import com.shoots.shoots_ui.data.model.UserResponse
 import retrofit2.Call
 import retrofit2.http.Body
@@ -56,7 +58,7 @@ interface ApiService {
     suspend fun getGroup(@Path("id") id: Int): GroupResponse
 
     @GET("groups/{id}/time")
-    suspend fun getGroupScreenTime(@Path("id") id: Int): ScreenTimeResponse
+    suspend fun getGroupScreenTime(@Path("id") id: Int): ScreenTimeListResponse
 
     @GET("groups/{id}/rankings")
     suspend fun getWeeklyRankings(@Path("id") id: Int): RankingsResponse
@@ -73,6 +75,9 @@ interface ApiService {
     @PUT("groups/join")
     suspend fun joinGroup(@Body request: JoinGroupRequest): GroupResponse
 
-    @POST("groups/{id}/time")
-    suspend fun addScreenTime(@Path("id") id: Int, @Body time: Double): ScreenTimeResponse
+    @POST("screenTime")
+    suspend fun enterScreenTime(@Body request: CreateScreenTimeRequest): ScreenTimeResponse
+
+    @GET("screenTime")
+    suspend fun getSelfScreenTime(): ScreenTimeResponse
 }

@@ -60,15 +60,4 @@ class GroupViewModel(
     fun toggleHistoricalView() {
         _isHistoricalView.value = !_isHistoricalView.value
     }
-
-    fun addScreenTime(time: Double) {
-        viewModelScope.launch {
-            try {
-                repository.addScreenTime(groupId, time)
-                loadGroupData()
-            } catch (e: Exception) {
-                _groupState.value = GroupState.Error(e.message ?: "Failed to add screen time")
-            }
-        }
-    }
-} 
+}

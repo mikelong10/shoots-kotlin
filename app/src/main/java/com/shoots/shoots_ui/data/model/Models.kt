@@ -56,11 +56,13 @@ data class JoinGroupRequest(
 
 data class ScreenTime(
     val id: Int,
-    val user_id: Int,
-    val group_id: Int,
-    val submitted_time: Double,
+    val userId: Int,
+    val submitted_time: Int,
     val inserted_at: String,
-    val user: User?
+)
+
+data class CreateScreenTimeRequest(
+    val screen_time: Int,
 )
 
 data class Ranking(
@@ -86,6 +88,7 @@ typealias RegisterResponse = ApiResponse<AuthData>
 typealias UserResponse = ApiResponse<User>
 typealias GroupResponse = ApiResponse<Group>
 typealias GroupsResponse = ApiResponse<List<Group>>
-typealias ScreenTimeResponse = ApiResponse<List<ScreenTime>>
+typealias ScreenTimeResponse = ApiResponse<ScreenTime>
+typealias ScreenTimeListResponse = ApiResponse<List<ScreenTime>>
 typealias RankingsResponse = ApiResponse<List<Ranking>>
 typealias HistoricalRankingsResponse = ApiResponse<List<UserHistoricalRankings>>

@@ -91,13 +91,4 @@ class GroupRepository(
             throw Exception(response.message)
         }
     }
-
-    suspend fun addScreenTime(groupId: Int, time: Double): List<ScreenTime> {
-        val response = apiService.addScreenTime(groupId, time)
-        if (response.success) {
-            return response.data
-        } else {
-            throw Exception(response.message)
-        }
-    }
 }
