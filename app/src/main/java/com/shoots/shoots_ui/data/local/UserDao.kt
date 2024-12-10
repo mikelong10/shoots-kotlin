@@ -21,4 +21,10 @@ interface UserDao {
 
     @Query("SELECT refreshToken FROM users LIMIT 1")
     suspend fun getRefreshToken(): String?
+
+    @Query("UPDATE users SET accessToken = :token WHERE id = (SELECT id FROM users LIMIT 1)")
+    suspend fun updateAccessToken(token: String)
+
+    @Query("UPDATE users SET refreshToken = :token WHERE id = (SELECT id FROM users LIMIT 1)")
+    suspend fun updateRefreshToken(token: String)
 }

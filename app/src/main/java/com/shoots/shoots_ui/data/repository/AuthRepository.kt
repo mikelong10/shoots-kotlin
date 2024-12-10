@@ -15,6 +15,7 @@ class AuthRepository(
     suspend fun login(email: String, password: String): User {
         val response = apiService.login(LoginRequest(email, password))
         if (response.success) {
+            println("Login response successful, storing user in Room") // Debug log
             val userEntity = UserEntity.fromAuthData(response.data)
             userDao.insertUser(userEntity)
             return response.data.user
@@ -26,6 +27,7 @@ class AuthRepository(
     suspend fun register(email: String, password: String, name: String): User {
         val response = apiService.register(RegisterRequest(email, password, name))
         if (response.success) {
+            println("Registration response successful, storing user in Room") // Debug log
             val userEntity = UserEntity.fromAuthData(response.data)
             userDao.insertUser(userEntity)
             return response.data.user
@@ -37,6 +39,7 @@ class AuthRepository(
     suspend fun googleAuth(idToken: String): User {
         val response = apiService.googleAuth(GoogleAuthRequest(idToken))
         if (response.success) {
+            println("Google auth response successful, storing user in Room") // Debug log
             val userEntity = UserEntity.fromAuthData(response.data)
             userDao.insertUser(userEntity)
             return response.data.user
@@ -45,11 +48,14 @@ class AuthRepository(
         }
     }
 
-    suspend fun logout() {
-        userDao.deleteUser()
+    suspend fun getUser(): User? {
+        val userEntity = userDao.getUser()
+        println("Getting user from Room: $userEntity") // Debug log
+        return userEntity?.toUser()
     }
 
-    suspend fun getUser(): User? {
-        return userDao.getUser()?.toUser()
+    suspend fun logout() {
+        println("Logging out, clearing user from Room") // Debug log
+        userDao.deleteUser()
     }
 }
