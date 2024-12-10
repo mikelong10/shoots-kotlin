@@ -16,6 +16,7 @@ sealed class PayoutsState {
         val rankings: List<Ranking>,
         val payouts: Map<Int, Double>
     ) : PayoutsState()
+
     data class Error(val message: String) : PayoutsState()
 }
 
@@ -36,7 +37,7 @@ class PayoutsViewModel(
             try {
                 val group = groupRepository.getGroup(groupId)
                 val rankings = groupRepository.getWeeklyRankings(groupId)
-                val payouts = calculatePayouts(group.stake, rankings)
+                val payouts = calculatePayouts(group.stake, group.screen_time_goal, rankings)
 
                 _payoutsState.value = PayoutsState.Success(
                     group = group,
@@ -44,21 +45,33 @@ class PayoutsViewModel(
                     payouts = payouts
                 )
             } catch (e: Exception) {
-                _payoutsState.value = PayoutsState.Error("loadPayoutsData: ${e.message}" ?: "Failed to load payouts data")
+                _payoutsState.value = PayoutsState.Error(
+                    "loadPayoutsData: ${e.message}" ?: "Failed to load payouts data"
+                )
             }
         }
     }
 
-    private fun calculatePayouts(stake: Double, rankings: List<Ranking>): Map<Int, Double> {
-        val payouts = rankings.associate { ranking ->
-            val payout = when (ranking.rank) {
-                1 -> stake * 0.5
-                2 -> stake * 0.3
-                3 -> stake * 0.2
-                else -> 0.0
-            }
-            ranking.user.id to payout
+    private fun calculatePayouts(
+        stake: Double,
+        screenTimeGoal: Int,
+        rankings: List<Ranking>
+    ): Map<Int, Double> {
+        val belowGoal = rankings.filter { it.time < screenTimeGoal }
+        val aboveGoal = rankings.filter { it.time >= screenTimeGoal }
+
+        val payouts = mutableMapOf<Int, Double>()
+
+        // Users below the goal receive payments
+        for (user in belowGoal) {
+            payouts[user.user.id] = aboveGoal.size * stake
         }
+
+        // Users above the goal pay the stake amount for each user below the goal
+        for (user in aboveGoal) {
+            payouts[user.user.id] = -(belowGoal.size * stake)
+        }
+
         return payouts
     }
 }

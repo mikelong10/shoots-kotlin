@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.shoots.shoots_ui.R
 import com.shoots.shoots_ui.data.model.Ranking
 import com.shoots.shoots_ui.data.model.UserHistoricalRankings
 import com.shoots.shoots_ui.ui.auth.AuthState
@@ -313,9 +315,9 @@ fun LeaderboardList(rankings: List<Ranking>) {
 @Composable
 fun LeaderboardItem(ranking: Ranking) {
     // Define medal colors for top 3
-    val goldColor = Color(0xFFFFD700)  // Classic gold
-    val silverColor = Color(0xFFC0C0C0) // Classic silver
-    val bronzeColor = Color(0xFFCD7F32) // Classic bronze
+    val goldColor = colorResource(R.color.gold)  // Classic gold
+    val silverColor = colorResource(R.color.silver) // Classic silver
+    val bronzeColor = colorResource(R.color.bronze) // Classic bronze
 
     // Create a list of container colors for remaining positions
     val containerColors = listOf(
