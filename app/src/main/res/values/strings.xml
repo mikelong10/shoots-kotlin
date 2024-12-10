@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">shoots-ui</string>
+    <string name="earnings_icon">https://cdn-icons-png.flaticon.com/512/5501/5501360.png</string>
+    <string name="losses_icon">https://media.istockphoto.com/id/959957308/vector/money-loss-vector-illustration-flat-cartoon-cash-with-down-arrow-stocks-graph-concept-of.jpg?s=612x612&amp;w=0&amp;k=20&amp;c=HQLE9KYuUiXfHiuYZX7MTVPviDwY96g72gCBWZXsfhg%3D</string>
 </resources>

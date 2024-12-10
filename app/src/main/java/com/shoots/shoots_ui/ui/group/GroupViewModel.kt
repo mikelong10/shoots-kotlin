@@ -8,6 +8,7 @@ import com.shoots.shoots_ui.data.model.ScreenTime
 import com.shoots.shoots_ui.data.model.User
 import com.shoots.shoots_ui.data.model.UserHistoricalRankings
 import com.shoots.shoots_ui.data.repository.GroupRepository
+import com.shoots.shoots_ui.data.repository.ScreenTimeRepository
 import com.shoots.shoots_ui.ui.home.HomeState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +28,8 @@ sealed class GroupState {
 
 class GroupViewModel(
     private val repository: GroupRepository,
-    private val groupId: Int
+    private val groupId: Int,
+    private val screenTimeRepository: ScreenTimeRepository
 ) : ViewModel() {
     private val _groupState = MutableStateFlow<GroupState>(GroupState.Loading)
     val groupState: StateFlow<GroupState> = _groupState
@@ -39,7 +41,7 @@ class GroupViewModel(
         loadGroupData()
     }
 
-    private fun loadGroupData() {
+    fun loadGroupData() {
         viewModelScope.launch {
             _groupState.value = GroupState.Loading
             try {

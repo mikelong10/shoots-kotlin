@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.shoots.shoots_ui.R
 import com.shoots.shoots_ui.data.model.Ranking
+import com.shoots.shoots_ui.ui.formatDisplayScreenTime
 import com.shoots.shoots_ui.ui.formatUSD
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,7 +91,19 @@ fun PayoutsPage(groupId: Int, navController: NavController) {
                             "Payouts for ${state.group.name}",
                             style = MaterialTheme.typography.headlineMedium
                         )
-                        Text("Stake: ${formatUSD(state.group.stake)}")
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "Stake: ${formatUSD(state.group.stake)}",
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "Screen Time Goal: ${formatDisplayScreenTime(state.group.screen_time_goal)}",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                         PayoutsList(
                             state.rankings,
                             state.payouts,
@@ -205,42 +219,52 @@ fun PayoutItem(rank: Ranking, payout: Double, navController: NavController, isWi
                     fontWeight = FontWeight.Bold
                 )
             }
-            if (isWinner) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    GlideImage(
-                        model = "https://cdn-icons-png.flaticon.com/512/5501/5501360.png",
-                        contentDescription = "Earnings",
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape),
-                    )
-                    Text(
-                        formatUSD(payout),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = colorResource(R.color.dark_green)
-                    )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                if (isWinner) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        GlideImage(
+                            model = stringResource(R.string.earnings_icon),
+                            contentDescription = "Earnings",
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape),
+                        )
+                        Text(
+                            formatUSD(payout),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colorResource(R.color.dark_green)
+                        )
+                    }
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        GlideImage(
+                            model = stringResource(R.string.losses_icon),
+                            contentDescription = "Losses",
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape),
+                        )
+                        Text(
+                            formatUSD(payout * -1),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colorResource(R.color.dark_red)
+                        )
+                    }
                 }
-            } else {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    GlideImage(
-                        model = "https://media.istockphoto.com/id/959957308/vector/money-loss-vector-illustration-flat-cartoon-cash-with-down-arrow-stocks-graph-concept-of.jpg?s=612x612&w=0&k=20&c=HQLE9KYuUiXfHiuYZX7MTVPviDwY96g72gCBWZXsfhg%3D",
-                        contentDescription = "Earnings",
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape),
-                    )
-                    Text(
-                        formatUSD(payout * -1),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = colorResource(R.color.dark_red)
-                    )
-                }
+                Text(
+                    formatDisplayScreenTime(rank.time),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
             }
         }
     }

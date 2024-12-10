@@ -76,7 +76,6 @@ fun HomeFragment(
         onJoinGroupClick = viewModel::showJoinGroupDialog,
         onEnterScreenTimeClick = viewModel::showEnterScreenTimeDialog,
         onGroupClick = onNavigateToGroup,
-        viewModel = viewModel,
         authModel = authModel,
         onProfileClick = onNavigateToProfile
     )
@@ -113,7 +112,6 @@ fun HomeScreen(
     onJoinGroupClick: () -> Unit,
     onEnterScreenTimeClick: () -> Unit,
     onGroupClick: (Int) -> Unit,
-    viewModel: HomeViewModel,
     authModel: AuthViewModel
 ) {
     val authState by authModel.authState.collectAsStateWithLifecycle()
