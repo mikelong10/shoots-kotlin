@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -103,7 +104,6 @@ fun HomeScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -144,41 +144,60 @@ fun HomeScreen(
                     }
 
                     is HomeState.Success -> {
-                        if (homeState.screenTime != null) {
-                            ScreenTimeCard(screenTime = homeState.screenTime.submitted_time)
-                        }
-
-                        if (homeState.groups.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    "You are not in any groups, create or join one to get started!",
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        } else {
-                            val scrollState = rememberScrollState()
+                        Box(modifier = Modifier.fillMaxSize()) {
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.verticalScroll(scrollState)
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                if (homeState.myGroups.isNotEmpty()) {
-                                    Header("My Groups")
-                                    homeState.myGroups.forEach { group ->
-                                        GroupCard(
-                                            group = group,
-                                            onClick = { onGroupClick(group.id) }
+                                if (homeState.screenTime != null) {
+                                    ScreenTimeCard(screenTime = homeState.screenTime.submitted_time)
+                                }
+
+                                if (homeState.groups.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            "You are not in any groups, create or join one to get started!",
+                                            textAlign = TextAlign.Center
                                         )
                                     }
+                                } else {
+                                    val scrollState = rememberScrollState()
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.verticalScroll(scrollState)
+                                    ) {
+                                        if (homeState.myGroups.isNotEmpty()) {
+                                            Header("My Groups")
+                                            homeState.myGroups.forEach { group ->
+                                                GroupCard(
+                                                    group = group,
+                                                    onClick = { onGroupClick(group.id) }
+                                                )
+                                            }
+                                        }
+                                        Header("Available Groups")
+                                        homeState.groups.forEach { group ->
+                                            GroupCard(
+                                                group = group,
+                                                onClick = { onGroupClick(group.id) }
+                                            )
+                                        }
+                                    }
                                 }
-                                Header("Available Groups")
-                                homeState.groups.forEach { group ->
-                                    GroupCard(
-                                        group = group,
-                                        onClick = { onGroupClick(group.id) }
-                                    )
+                            }
+
+                            if (homeState.screenTime == null) {
+                                Button(
+                                    onClick = onEnterScreenTimeClick,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(16.dp)
+                                ) {
+                                    Text("Enter Screen Time")
                                 }
                             }
                         }
@@ -206,18 +225,8 @@ fun HomeScreen(
                     }
                 }
             }
-
-            Button(
-                onClick = onEnterScreenTimeClick,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-            ) {
-                Text("Enter Screen Time")
-            }
         }
     }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -232,14 +241,15 @@ fun ScreenTimeCard(screenTime: Int?) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Screen Time This Week")
-                Text("$screenTime hours", style = MaterialTheme.typography.headlineSmall)
+                Text("This Week's Daily Avg", style = MaterialTheme.typography.titleMedium)
+                Text("$screenTime minutes", style = MaterialTheme.typography.headlineLarge)
             }
         }
     }
