@@ -64,6 +64,8 @@ dependencies {
     implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
     implementation(libs.androidx.lifecycle.runtime.compose.android)
     implementation(libs.androidx.material3.android)
+    testImplementation(libs.androidx.ui.test.junit4.android)
+    testImplementation("io.mockk:mockk:1.13.5")
 
     // Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
