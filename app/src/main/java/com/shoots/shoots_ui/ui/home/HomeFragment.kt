@@ -9,10 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -94,100 +91,113 @@ fun HomeScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Button(
-                    onClick = onCreateGroupClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Create Group")
-                }
-                Button(
-                    onClick = onJoinGroupClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                ) {
-                    Text("Join Group")
-                }
-            }
-
-            when (homeState) {
-                is HomeState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                    Button(
+                        onClick = onCreateGroupClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp)
                     ) {
-                        CircularProgressIndicator()
+                        Text("Create Group")
+                    }
+                    Button(
+                        onClick = onJoinGroupClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 8.dp)
+                    ) {
+                        Text("Join Group")
                     }
                 }
-                is HomeState.Success -> {
-                    if (homeState.groups.isEmpty()) {
+
+                when (homeState) {
+                    is HomeState.Loading -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                "You are not in any groups, create or join one to get started!",
-                                textAlign = TextAlign.Center
-                            )
+                            CircularProgressIndicator()
                         }
-                    } else {
-                        val scrollState = rememberScrollState()
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.verticalScroll(scrollState)
-                        ) {
-                            if (homeState.myGroups.isNotEmpty()) {
-                                Header("My Groups")
-                                homeState.myGroups.forEach { group ->
+                    }
+
+                    is HomeState.Success -> {
+                        if (homeState.groups.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "You are not in any groups, create or join one to get started!",
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        } else {
+                            val scrollState = rememberScrollState()
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.verticalScroll(scrollState)
+                            ) {
+                                if (homeState.myGroups.isNotEmpty()) {
+                                    Header("My Groups")
+                                    homeState.myGroups.forEach { group ->
+                                        GroupCard(
+                                            group = group,
+                                            onClick = { onGroupClick(group.id) }
+                                        )
+                                    }
+                                }
+                                Header("Available Groups")
+                                homeState.groups.forEach { group ->
                                     GroupCard(
                                         group = group,
                                         onClick = { onGroupClick(group.id) }
                                     )
                                 }
                             }
-                            Header("Available Groups")
-                            homeState.groups.forEach { group ->
-                                GroupCard(
-                                    group = group,
-                                    onClick = { onGroupClick(group.id) }
-                                )
+                        }
+                    }
+
+                    is HomeState.Error -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                homeState.message,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                            Button(
+                                onClick = { viewModel.loadGroups() },
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                Text("Retry")
                             }
                         }
                     }
                 }
-                is HomeState.Error -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            homeState.message,
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                        Button(
-                            onClick = { viewModel.loadGroups() },
-                            modifier = Modifier.padding(top = 8.dp)
-                        ) {
-                            Text("Retry")
-                        }
-                    }
-                }
+            }
+
+            Button(
+                onClick = { /* Handle button click */ },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+            ) {
+                Text("Enter Screen Time")
             }
         }
     }
@@ -195,7 +205,7 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Header(text: String)  {
+fun Header(text: String) {
     Text(text)
 }
 

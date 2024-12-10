@@ -2,6 +2,7 @@ package com.shoots.shoots_ui.data.remote
 
 import com.shoots.shoots_ui.data.model.ApiResponse
 import com.shoots.shoots_ui.data.model.CreateGroupRequest
+import com.shoots.shoots_ui.data.model.CreateScreenTimeRequest
 import com.shoots.shoots_ui.data.model.GroupResponse
 import com.shoots.shoots_ui.data.model.GroupsResponse
 import com.shoots.shoots_ui.data.model.JoinGroupRequest
@@ -9,6 +10,7 @@ import com.shoots.shoots_ui.data.model.LoginRequest
 import com.shoots.shoots_ui.data.model.LoginResponse
 import com.shoots.shoots_ui.data.model.RegisterRequest
 import com.shoots.shoots_ui.data.model.RegisterResponse
+import com.shoots.shoots_ui.data.model.ScreenTimeResponse
 import com.shoots.shoots_ui.data.model.UserResponse
 import retrofit2.Call
 import retrofit2.http.Body
@@ -60,4 +62,7 @@ interface ApiService {
 
     @PUT("groups/join")
     suspend fun joinGroup(@Body request: JoinGroupRequest): GroupResponse
+
+    @POST("screenTime")
+    suspend fun enterScreenTime(@Body request: CreateScreenTimeRequest): ScreenTimeResponse
 }

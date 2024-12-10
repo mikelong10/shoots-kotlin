@@ -54,9 +54,21 @@ data class JoinGroupRequest(
     val code: String
 )
 
+data class ScreenTime(
+    val id: Int,
+    val userId: Int,
+    val submitted_time: Int,
+    val inserted_at: String,
+)
+
+data class CreateScreenTimeRequest(
+    val screen_time: Int,
+)
+
 // Type aliases for common response types
 typealias LoginResponse = ApiResponse<AuthData>
 typealias RegisterResponse = ApiResponse<AuthData>
 typealias UserResponse = ApiResponse<User>
 typealias GroupResponse = ApiResponse<Group>
 typealias GroupsResponse = ApiResponse<List<Group>>
+typealias ScreenTimeResponse = ApiResponse<ScreenTime>
