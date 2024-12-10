@@ -1,5 +1,6 @@
 package com.shoots.shoots_ui.ui.home
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,16 +38,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.integration.compose.placeholder
+import com.shoots.shoots_ui.R
 import com.shoots.shoots_ui.data.model.Group
+import com.shoots.shoots_ui.ui.auth.AuthState
+import com.shoots.shoots_ui.ui.auth.AuthViewModel
 
 @Composable
 fun HomeFragment(
     viewModel: HomeViewModel,
-    onNavigateToGroup: (Int) -> Unit
+    authModel: AuthViewModel,
+    onNavigateToGroup: (Int) -> Unit,
+    onNavigateToProfile: () -> Unit
 ) {
     val homeState by viewModel.homeState.collectAsStateWithLifecycle()
     val isCreateGroupDialogVisible by viewModel.isCreateGroupDialogVisible.collectAsStateWithLifecycle()
@@ -55,7 +67,9 @@ fun HomeFragment(
         onCreateGroupClick = viewModel::showCreateGroupDialog,
         onJoinGroupClick = viewModel::showJoinGroupDialog,
         onGroupClick = onNavigateToGroup,
-        viewModel = viewModel
+        viewModel = viewModel,
+        authModel = authModel,
+        onProfileClick = onNavigateToProfile
     )
 
     if (isCreateGroupDialogVisible) {
@@ -73,15 +87,18 @@ fun HomeFragment(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun HomeScreen(
     homeState: HomeState,
     onCreateGroupClick: () -> Unit,
+    onProfileClick: () -> Unit,
     onJoinGroupClick: () -> Unit,
     onGroupClick: (Int) -> Unit,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
+    authModel: AuthViewModel
 ) {
+    val authState by authModel.authState.collectAsStateWithLifecycle()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -89,6 +106,30 @@ fun HomeScreen(
                 actions = {
                     IconButton(onClick = onCreateGroupClick) {
                         Text("+")
+                    }
+                    IconButton(onClick = onProfileClick) {
+                        when (val state = authState) {
+                            is AuthState.Authenticated -> {
+                                val user = state.user
+                                GlideImage(
+                                    model = user.profile_picture ?: R.drawable.default_avatar,
+                                    contentDescription = "Profile Picture",
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(CircleShape)
+                                        .border(
+                                            2.dp,
+                                            MaterialTheme.colorScheme.primary,
+                                            CircleShape
+                                        ),
+                                    loading = placeholder(R.drawable.default_avatar)
+                                )
+                            }
+                            is AuthState.Error -> TODO()
+                            AuthState.Initial -> TODO()
+                            AuthState.NotAuthenticated -> TODO()
+                            AuthState.Loading -> TODO()
+                        }
                     }
                 }
             )

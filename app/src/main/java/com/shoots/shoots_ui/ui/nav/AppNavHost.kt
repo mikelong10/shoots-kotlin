@@ -67,12 +67,15 @@ fun AppNavHost(
                 viewModel = homeViewModel,
                 onNavigateToGroup = { groupId ->
                     navController.navigate(NavigationItem.Group.createRoute(groupId))
-                }
+                },
+                onNavigateToProfile = {
+                    navController.navigate("user") },
+                authModel = authViewModel
             )
         }
 
         composable(NavigationItem.User.route) {
-            UserFragment(viewModel = authViewModel)
+            UserFragment(viewModel = authViewModel, onGoBack = {navController.navigateUp()})
         }
 
         composable(
