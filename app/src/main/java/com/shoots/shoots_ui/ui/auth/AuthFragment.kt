@@ -91,6 +91,7 @@ fun AuthContent(
                 viewModel.handleGoogleSignIn(token)
             }
         } catch (e: ApiException) {
+            println("Error logging into google: $e")
             // Handle error
         }
     }
