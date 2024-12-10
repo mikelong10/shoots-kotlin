@@ -3,21 +3,27 @@ package com.shoots.shoots_ui.data.remote
 import com.shoots.shoots_ui.data.model.ApiResponse
 import com.shoots.shoots_ui.data.model.CreateGroupRequest
 import com.shoots.shoots_ui.data.model.CreateScreenTimeRequest
+import com.shoots.shoots_ui.data.model.GroupMembersResponse
 import com.shoots.shoots_ui.data.model.GroupResponse
 import com.shoots.shoots_ui.data.model.GroupsResponse
+import com.shoots.shoots_ui.data.model.HistoricalRankingsResponse
 import com.shoots.shoots_ui.data.model.JoinGroupRequest
 import com.shoots.shoots_ui.data.model.LoginRequest
 import com.shoots.shoots_ui.data.model.LoginResponse
+import com.shoots.shoots_ui.data.model.RankingsResponse
 import com.shoots.shoots_ui.data.model.RegisterRequest
 import com.shoots.shoots_ui.data.model.RegisterResponse
+import com.shoots.shoots_ui.data.model.ScreenTimeListResponse
 import com.shoots.shoots_ui.data.model.ScreenTimeResponse
 import com.shoots.shoots_ui.data.model.UserResponse
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 data class GoogleAuthRequest(
     val idToken: String
@@ -37,6 +43,9 @@ interface ApiService {
     @POST("auth/register")
     suspend fun register(@Body registerRequest: RegisterRequest): RegisterResponse
 
+    @DELETE("auth/logout")
+    suspend fun logout(): ApiResponse<Unit>
+
     @GET("user")
     suspend fun getSelf(): UserResponse
 
@@ -47,12 +56,23 @@ interface ApiService {
     @GET("groups")
     suspend fun listGroups(): GroupsResponse
 
-    // Group endpoints
-    @GET("groups?self=true")
-    suspend fun listMyGroups(): GroupsResponse
+    @GET("groups")
+    suspend fun listMyGroups(@Query("self") self: Boolean = true): GroupsResponse
 
     @GET("groups/{id}")
     suspend fun getGroup(@Path("id") id: Int): GroupResponse
+
+    @GET("groups/{id}/time")
+    suspend fun getGroupScreenTime(@Path("id") id: Int): ScreenTimeListResponse
+
+    @GET("groups/{id}/members")
+    suspend fun getGroupMembers(@Path("id") id: Int): GroupMembersResponse
+
+    @GET("groups/{id}/rankings")
+    suspend fun getWeeklyRankings(@Path("id") id: Int): RankingsResponse
+
+    @GET("groups/{id}/historical")
+    suspend fun getHistoricalRankings(@Path("id") id: Int): HistoricalRankingsResponse
 
     @POST("groups")
     suspend fun createGroup(@Body request: CreateGroupRequest): GroupResponse

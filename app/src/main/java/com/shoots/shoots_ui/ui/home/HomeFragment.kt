@@ -11,16 +11,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +53,7 @@ import com.shoots.shoots_ui.R
 import com.shoots.shoots_ui.data.model.Group
 import com.shoots.shoots_ui.ui.auth.AuthState
 import com.shoots.shoots_ui.ui.auth.AuthViewModel
+import com.shoots.shoots_ui.ui.formatDisplayScreenTime
 
 @Composable
 fun HomeFragment(
@@ -64,6 +66,11 @@ fun HomeFragment(
     val isCreateGroupDialogVisible by viewModel.isCreateGroupDialogVisible.collectAsStateWithLifecycle()
     val isJoinGroupDialogVisible by viewModel.isJoinGroupDialogVisible.collectAsStateWithLifecycle()
     val isEnterScreenTimeDialogVisible by viewModel.isEnterScreenTimeDialogVisible.collectAsStateWithLifecycle()
+
+    // Add LaunchedEffect to reload data when screen becomes active
+    LaunchedEffect(Unit) {
+        viewModel.loadHomeData()
+    }
 
     HomeScreen(
         homeState = homeState,
@@ -112,29 +119,22 @@ fun HomeScreen(
     authModel: AuthViewModel
 ) {
     val authState by authModel.authState.collectAsStateWithLifecycle()
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Home") },
-                actions = {
-                    IconButton(onClick = onCreateGroupClick) {
-                        Text("+")
-                    }
-                    IconButton(onClick = onProfileClick) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Home") },
+                    actions = {
                         when (val state = authState) {
                             is AuthState.Authenticated -> {
-                                val user = state.user
                                 GlideImage(
-                                    model = user.profile_picture ?: R.drawable.default_avatar,
+                                    model = state.user.profile_picture,
                                     contentDescription = "Profile Picture",
                                     modifier = Modifier
-                                        .size(120.dp)
+                                        .size(40.dp)
                                         .clip(CircleShape)
-                                        .border(
-                                            2.dp,
-                                            MaterialTheme.colorScheme.primary,
-                                            CircleShape
-                                        ),
+                                        .clickable { onProfileClick() }
+                                        .padding(4.dp),
                                     loading = placeholder(R.drawable.default_avatar)
                                 )
                             }
@@ -144,10 +144,9 @@ fun HomeScreen(
                             AuthState.Loading -> TODO()
                         }
                     }
-                }
-            )
-        }
-    ) { padding ->
+                )
+            }
+        ) { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -190,15 +189,12 @@ fun HomeScreen(
                     is HomeState.Success -> {
                         Box(modifier = Modifier.fillMaxSize()) {
                             Column(
-                                modifier = Modifier
-                                    .fillMaxSize(),
+                                modifier = Modifier.fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                if (homeState.screenTime != null) {
-                                    ScreenTimeCard(screenTime = homeState.screenTime.submitted_time)
-                                }
+                                ScreenTimeCard(screenTime = homeState.screenTime?.submitted_time)
 
-                                if (homeState.groups.isEmpty()) {
+                                if (homeState.myGroups.isEmpty() && homeState.groups.isEmpty()) {
                                     Box(
                                         modifier = Modifier.fillMaxSize(),
                                         contentAlignment = Alignment.Center
@@ -223,54 +219,60 @@ fun HomeScreen(
                                                 )
                                             }
                                         }
-                                        Header("Available Groups")
-                                        homeState.groups.forEach { group ->
-                                            GroupCard(
-                                                group = group,
-                                                onClick = { onGroupClick(group.id) }
-                                            )
+                                        
+                                        // Only show Available Groups if there are groups the user isn't in
+                                        if (homeState.groups.isNotEmpty()) {
+                                            Header("Available Groups")
+                                            homeState.groups.forEach { group ->
+                                                GroupCard(
+                                                    group = group,
+                                                    onClick = { onGroupClick(group.id) }
+                                                )
+                                            }
                                         }
                                     }
-                                }
-                            }
-
-                            if (homeState.screenTime == null) {
-                                Button(
-                                    onClick = onEnterScreenTimeClick,
-                                    modifier = Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .padding(16.dp)
-                                ) {
-                                    Text("Enter Screen Time")
                                 }
                             }
                         }
                     }
 
                     is HomeState.Error -> {
-                        Column(
+                        Box(
                             modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                homeState.message,
+                                text = homeState.message,
                                 color = MaterialTheme.colorScheme.error,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(16.dp)
+                                textAlign = TextAlign.Center
                             )
-                            Button(
-                                onClick = { viewModel.loadHomeData() },
-                                modifier = Modifier.padding(top = 8.dp)
-                            ) {
-                                Text("Retry")
-                            }
                         }
                     }
                 }
             }
         }
+
+        // Floating Enter Screen Time button
+        if (homeState is HomeState.Success && homeState.screenTime == null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+            ) {
+                Button(
+                    onClick = onEnterScreenTimeClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary
+                    )
+                ) {
+                    Text("Enter Screen Time")
+                }
+            }
+        }
     }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -281,22 +283,34 @@ fun Header(text: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenTimeCard(screenTime: Int?) {
-    if (screenTime != null) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("This Week's Daily Avg", style = MaterialTheme.typography.titleMedium)
-                Text("$screenTime minutes", style = MaterialTheme.typography.headlineLarge)
+            Text("This Week's Daily Avg", style = MaterialTheme.typography.titleMedium)
+            if (screenTime == null) {
+                Text("--hr  --min", style = MaterialTheme.typography.headlineLarge)
+            } else {
+                Text(
+                    formatDisplayScreenTime(screenTime),
+                    style = MaterialTheme.typography.headlineLarge
+                )
             }
         }
     }
+}
+
+@Composable
+private fun formatDisplayScreenTime(minutes: Int): String {
+    val hours = minutes / 60
+    val remainingMinutes = minutes % 60
+    return "${hours}hr  ${remainingMinutes}min"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -320,7 +334,7 @@ fun GroupCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Goal: ${group.screen_time_goal} minutes",
+                text = "Goal: ${formatDisplayScreenTime(group.screen_time_goal)}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(4.dp))

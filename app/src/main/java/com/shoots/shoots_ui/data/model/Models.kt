@@ -65,6 +65,23 @@ data class CreateScreenTimeRequest(
     val screen_time: Int,
 )
 
+data class Ranking(
+    val rank: Int,
+    val user: User,
+    val time: Int
+)
+
+data class WeekRanking(
+    val rank: Int,
+    val week: String,
+    val time: Int
+)
+
+data class UserHistoricalRankings(
+    val user: User,
+    val weekRankings: List<WeekRanking>
+)
+
 // Type aliases for common response types
 typealias LoginResponse = ApiResponse<AuthData>
 typealias RegisterResponse = ApiResponse<AuthData>
@@ -72,3 +89,7 @@ typealias UserResponse = ApiResponse<User>
 typealias GroupResponse = ApiResponse<Group>
 typealias GroupsResponse = ApiResponse<List<Group>>
 typealias ScreenTimeResponse = ApiResponse<ScreenTime>
+typealias ScreenTimeListResponse = ApiResponse<List<ScreenTime>>
+typealias GroupMembersResponse = ApiResponse<List<User>>
+typealias RankingsResponse = ApiResponse<List<Ranking>>
+typealias HistoricalRankingsResponse = ApiResponse<List<UserHistoricalRankings>>
