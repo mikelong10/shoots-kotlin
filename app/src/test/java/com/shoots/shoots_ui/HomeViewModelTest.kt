@@ -12,6 +12,7 @@ import com.shoots.shoots_ui.data.repository.GroupRepository
 import com.shoots.shoots_ui.data.repository.ScreenTimeRepository
 import com.shoots.shoots_ui.ui.home.HomeState
 import com.shoots.shoots_ui.ui.home.HomeViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class HomeViewModelTest {
 
@@ -20,6 +21,7 @@ class HomeViewModelTest {
     private lateinit var screenTimeRepository: ScreenTimeRepository
     private lateinit var viewModel: HomeViewModel
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
@@ -27,6 +29,7 @@ class HomeViewModelTest {
         screenTimeRepository = mockk()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `loadHomeData success sets HomeState Success`() = runTest {
         val allGroups = listOf(
@@ -56,6 +59,7 @@ class HomeViewModelTest {
         assertEquals(screenTime, state.screenTime)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `loadHomeData failure sets HomeState Error`() = runTest {
         val dummyScreenTime = ScreenTime(
@@ -76,6 +80,7 @@ class HomeViewModelTest {
         (state as HomeState.Error).message.contains("Network error")
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `show and hide dialog states`() = runTest {
         val dummyScreenTime = ScreenTime(
@@ -110,6 +115,7 @@ class HomeViewModelTest {
         assertFalse(viewModel.isEnterScreenTimeDialogVisible.value)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `createGroup success reloads data`() = runTest {
         val dummyScreenTime = ScreenTime(
@@ -143,6 +149,7 @@ class HomeViewModelTest {
         assertFalse(viewModel.isCreateGroupDialogVisible.value)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `createGroup failure sets Error`() = runTest {
         val dummyScreenTime = ScreenTime(
@@ -166,6 +173,7 @@ class HomeViewModelTest {
         assertTrue(state is HomeState.Error && state.message.contains("Create failed"))
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `joinGroup success reloads data`() = runTest {
         val dummyScreenTime = ScreenTime(
@@ -199,6 +207,7 @@ class HomeViewModelTest {
         assertFalse(viewModel.isJoinGroupDialogVisible.value)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `joinGroup failure sets Error`() = runTest {
         val dummyScreenTime = ScreenTime(
@@ -222,6 +231,7 @@ class HomeViewModelTest {
         assertTrue(state is HomeState.Error && state.message.contains("Join failed"))
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `enterScreenTime success reloads data`() = runTest {
         val dummyScreenTime = ScreenTime(
@@ -252,6 +262,7 @@ class HomeViewModelTest {
         assertFalse(viewModel.isEnterScreenTimeDialogVisible.value)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `enterScreenTime failure sets Error`() = runTest {
         val dummyScreenTime = ScreenTime(
@@ -275,6 +286,7 @@ class HomeViewModelTest {
         assertTrue(state is HomeState.Error && state.message.contains("Invalid input"))
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `enter negative screen time sets Error`() = runTest {
         val dummyScreenTime = ScreenTime(
