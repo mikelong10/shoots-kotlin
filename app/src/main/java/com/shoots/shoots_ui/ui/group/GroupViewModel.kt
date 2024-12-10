@@ -8,6 +8,7 @@ import com.shoots.shoots_ui.data.model.ScreenTime
 import com.shoots.shoots_ui.data.model.User
 import com.shoots.shoots_ui.data.model.UserHistoricalRankings
 import com.shoots.shoots_ui.data.repository.GroupRepository
+import com.shoots.shoots_ui.data.repository.ScreenTimeRepository
 import com.shoots.shoots_ui.ui.home.HomeState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,13 +28,17 @@ sealed class GroupState {
 
 class GroupViewModel(
     private val repository: GroupRepository,
-    private val groupId: Int
+    private val groupId: Int,
+    private val screenTimeRepository: ScreenTimeRepository
 ) : ViewModel() {
     private val _groupState = MutableStateFlow<GroupState>(GroupState.Loading)
     val groupState: StateFlow<GroupState> = _groupState
 
     private val _isHistoricalView = MutableStateFlow(false)
     val isHistoricalView: StateFlow<Boolean> = _isHistoricalView
+
+    private val _isEnterScreenTimeDialogVisible = MutableStateFlow(false)
+    val isEnterScreenTimeDialogVisible: StateFlow<Boolean> = _isEnterScreenTimeDialogVisible
 
     init {
         loadGroupData()
@@ -73,7 +78,39 @@ class GroupViewModel(
         }
     }
 
+    fun showEnterScreenTimeDialog() {
+        _isEnterScreenTimeDialogVisible.value = true
+    }
+
+    fun hideEnterScreenTimeDialog() {
+        _isEnterScreenTimeDialogVisible.value = false
+    }
+
     fun toggleHistoricalView() {
         _isHistoricalView.value = !_isHistoricalView.value
+    }
+
+    fun enterScreenTime(screenTime: Int) {
+        viewModelScope.launch {
+            try {
+                if (screenTime < 0) {
+                    _groupState.value = GroupState.Error("Screen time must be a positive number")
+                    return@launch
+                }
+
+                screenTimeRepository.enterScreenTime(screenTime)
+                hideEnterScreenTimeDialog()
+                loadGroupData()
+            } catch (e: Exception) {
+                val errorMessage = when {
+                    e.message?.contains("already submitted") == true ->
+                        "You have already submitted time for this week"
+                    e.message?.contains("must be an integer") == true ->
+                        "Screen time must be an integer"
+                    else -> e.message ?: "Failed to enter screen time"
+                }
+                _groupState.value = GroupState.Error(errorMessage)
+            }
+        }
     }
 }

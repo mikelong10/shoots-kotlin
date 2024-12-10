@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -68,6 +71,7 @@ fun GroupFragment(
     val groupState by viewModel.groupState.collectAsStateWithLifecycle()
     val isHistoricalView by viewModel.isHistoricalView.collectAsStateWithLifecycle()
     val authState by authModel.authState.collectAsStateWithLifecycle()
+    val isEnterScreenTimeDialogVisible by viewModel.isEnterScreenTimeDialogVisible.collectAsStateWithLifecycle()
 
     GroupScreen(
         groupState = groupState,
@@ -75,8 +79,17 @@ fun GroupFragment(
         onToggleHistoricalView = viewModel::toggleHistoricalView,
         onNavigateBack = { navController.popBackStack() },
         onJoinGroup = viewModel::joinGroup,
+        onAddScreenTime = viewModel::showEnterScreenTimeDialog,
         authState = authState
     )
+
+    if (isEnterScreenTimeDialogVisible) {
+        com.shoots.shoots_ui.ui.home.EnterScreenTimeDialog(
+            onDismiss =
+            viewModel::hideEnterScreenTimeDialog,
+            onEnter = viewModel::enterScreenTime
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,6 +98,7 @@ fun GroupScreen(
     groupState: GroupState,
     isHistoricalView: Boolean,
     onToggleHistoricalView: () -> Unit,
+    onAddScreenTime: () -> Unit,
     onNavigateBack: () -> Unit,
     onJoinGroup: (String) -> Unit,
     authState: AuthState
@@ -150,6 +164,9 @@ fun GroupScreen(
                             HistoricalRankingsList(historicalRankings = groupState.historicalRankings)
                         } else {
                             if (groupState.weeklyRankings.isEmpty()) NoEntriesCard()
+                            if (groupState.weeklyRankings.filter { ranking: Ranking ->
+                                ranking.user.id == state.user.id }.isEmpty())
+                                SubmitYourTimeCard(onAddScreenTime)
                             LeaderboardList(rankings = groupState.weeklyRankings)
                         }
                     }
@@ -192,6 +209,37 @@ fun GroupScreen(
                             textAlign = TextAlign.Center
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SubmitYourTimeCard(onEnterScreenTimeClick: () -> Unit){
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("You still need to submit your time for this week!", style = MaterialTheme.typography.titleMedium)
+            Box(
+                modifier = Modifier
+            ) {
+                Button(
+                    onClick = onEnterScreenTimeClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text("Enter Screen Time")
                 }
             }
         }
@@ -376,4 +424,64 @@ fun LeaderboardItem(ranking: Ranking) {
             )
         }
     }
+}
+
+
+@Composable
+fun EnterScreenTimeDialog(
+    onDismiss: () -> Unit,
+    onEnter: (Int) -> Unit
+) {
+    var screenTime by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Screen Time") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                OutlinedTextField(
+                    value = screenTime,
+                    onValueChange = { input: String ->
+                        if (input.all { it.isDigit() }) {
+                            screenTime = input
+                        }
+                    },
+                    label = { Text("Daily Average") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            if (screenTime.isNotBlank()) {
+                                onEnter(screenTime.toInt())
+                            }
+                        }
+                    )
+                )
+                Text(
+                    text = "Enter your daily average screen time for this past week",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (screenTime.isNotBlank()) {
+                        onEnter(screenTime.toInt())
+                    }
+                }
+            ) {
+                Text("Enter")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
