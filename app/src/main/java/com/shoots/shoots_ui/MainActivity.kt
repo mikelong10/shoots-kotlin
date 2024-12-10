@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         // Initialize modules with proper dependencies
         val database = DatabaseModule.getDatabase(applicationContext)
         NetworkModule.initialize(
-            context = applicationContext,
+            context = this,
             dao = database.userDao(),
             viewModel = viewModel
         )

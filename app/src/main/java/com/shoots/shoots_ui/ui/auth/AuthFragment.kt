@@ -12,18 +12,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,25 +50,22 @@ import com.shoots.shoots_ui.R
 
 @Composable
 fun AuthFragment(
-    onNavigateToUser: () -> Unit,
     viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(LocalContext.current))
 ) {
-    AuthContent(
-        viewModel = viewModel,
-        onNavigateToUser = onNavigateToUser
-    )
+    AuthContent(viewModel = viewModel)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthContent(
     viewModel: AuthViewModel,
-    onNavigateToUser: () -> Unit
 ) {
     var isLogin by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
 
+    val focusManager = LocalFocusManager.current
     val context = LocalContext.current
     val authState by viewModel.authState.collectAsStateWithLifecycle()
 
@@ -91,162 +91,195 @@ fun AuthContent(
                 viewModel.handleGoogleSignIn(token)
             }
         } catch (e: ApiException) {
-            println("Error logging into google: $e")
             // Handle error
         }
     }
 
-    LaunchedEffect(authState) {
-        if (authState is AuthState.Authenticated) {
-            onNavigateToUser()
-        }
-    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = if (isLogin) "Welcome Back" else "Create Account",
-            style = MaterialTheme.typography.h5,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
+    Scaffold { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = if (isLogin) "Welcome Back" else "Create Account",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            ),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
-            singleLine = true
-        )
-
-        if (!isLogin) {
-            Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Name") },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done
+                    keyboardType = KeyboardType.Email,
+                    imeAction = if (isLogin && password.isNotBlank()) ImeAction.Done else ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) },
+                    onDone = {
+                        focusManager.clearFocus()
+                        if (email.isNotBlank() && password.isNotBlank()) {
+                            viewModel.login(email, password)
+                        }
+                    }
                 ),
                 singleLine = true
             )
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                if (isLogin) {
-                    viewModel.login(email, password)
-                } else {
-                    viewModel.register(email, password, name)
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-        ) {
-            if (authState is AuthState.Loading) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colors.onPrimary,
-                    modifier = Modifier.size(24.dp)
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = if (isLogin || name.isNotBlank()) ImeAction.Done else ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) },
+                    onDone = {
+                        focusManager.clearFocus()
+                        if (email.isNotBlank() && password.isNotBlank()) {
+                            if (isLogin) {
+                                viewModel.login(email, password)
+                            } else if (name.isNotBlank()) {
+                                viewModel.register(email, password, name)
+                            }
+                        }
+                    }
+                ),
+                singleLine = true
+            )
+
+            if (!isLogin) {
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                            if (email.isNotBlank() && password.isNotBlank() && name.isNotBlank()) {
+                                viewModel.register(email, password, name)
+                            }
+                        }
+                    ),
+                    singleLine = true
                 )
-            } else {
-                Text(if (isLogin) "Login" else "Sign Up")
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Divider(
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
-            )
-            Text(
-                text = "OR",
-                modifier = Modifier.padding(horizontal = 16.dp),
-                style = MaterialTheme.typography.body1,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
-            )
-            Divider(
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
-            )
-        }
+            Button(
+                onClick = {
+                    focusManager.clearFocus()
+                    if (isLogin) {
+                        viewModel.login(email, password)
+                    } else {
+                        viewModel.register(email, password, name)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                enabled = email.isNotBlank() && password.isNotBlank() &&
+                        (isLogin || (!isLogin && name.isNotBlank()))
+            ) {
+                if (authState is AuthState.Loading) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(if (isLogin) "Log In" else "Sign Up")
+                }
+            }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedButton(
-            onClick = {
-                launcher.launch(googleSignInClient.signInIntent)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-        ) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_google),
-                    contentDescription = "Google Icon",
-                    modifier = Modifier.size(24.dp)
+                Divider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Continue with Google")
+                Text(
+                    text = "OR",
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+                Divider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                )
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextButton(
-            onClick = { isLogin = !isLogin }
-        ) {
-            Text(
-                if (isLogin) "Need an account? Sign up" else "Already have an account? Login",
-                color = MaterialTheme.colors.primary
-            )
-        }
-
-        if (authState is AuthState.Error) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = (authState as AuthState.Error).message,
-                color = MaterialTheme.colors.error,
-                style = MaterialTheme.typography.body1,
-                textAlign = TextAlign.Center
-            )
+
+            OutlinedButton(
+                onClick = { launcher.launch(googleSignInClient.signInIntent) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_google),
+                        contentDescription = "Google Logo",
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Continue with Google")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(
+                onClick = {
+                    isLogin = !isLogin
+                    email = ""
+                    password = ""
+                    name = ""
+                }
+            ) {
+                Text(
+                    if (isLogin) "Need an account? Sign up" else "Already have an account? Log in",
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            if (authState is AuthState.Error) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = (authState as AuthState.Error).message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
