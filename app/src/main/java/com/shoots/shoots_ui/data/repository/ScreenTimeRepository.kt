@@ -15,4 +15,13 @@ class ScreenTimeRepository(
             throw Exception(response.message)
         }
     }
+
+    suspend fun getSelfScreenTime(): ScreenTime {
+        val response = apiService.getSelfScreenTime()
+        if (response.success) {
+            return response.data
+        } else {
+            throw Exception(response.message)
+        }
+    }
 }

@@ -3,6 +3,7 @@ package com.shoots.shoots_ui.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shoots.shoots_ui.data.model.Group
+import com.shoots.shoots_ui.data.model.ScreenTime
 import com.shoots.shoots_ui.data.repository.GroupRepository
 import com.shoots.shoots_ui.data.repository.ScreenTimeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +12,12 @@ import kotlinx.coroutines.launch
 
 sealed class HomeState {
     object Loading : HomeState()
-    data class Success(val groups: List<Group>, val myGroups: List<Group>) : HomeState()
+    data class Success(
+        val groups: List<Group>,
+        val myGroups: List<Group>,
+        val screenTime: ScreenTime?
+    ) : HomeState()
+
     data class Error(val message: String) : HomeState()
 }
 
@@ -32,10 +38,10 @@ class HomeViewModel(
     val isEnterScreenTimeDialogVisible: StateFlow<Boolean> = _isEnterScreenTimeDialogVisible
 
     init {
-        loadGroups()
+        loadHomeData()
     }
 
-    fun loadGroups() {
+    fun loadHomeData() {
         viewModelScope.launch {
             _homeState.value = HomeState.Loading
             try {
@@ -43,8 +49,9 @@ class HomeViewModel(
                 val myGroups = groupRepository.listMyGroups()
                 val groupIDs = myGroups.map { it.id }.toSet()
                 groups = groups.filter { it.id !in groupIDs }
+                val screenTime = screenTimeRepository.getSelfScreenTime()
 
-                _homeState.value = HomeState.Success(groups, myGroups)
+                _homeState.value = HomeState.Success(groups, myGroups, screenTime)
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to load groups")
             }
@@ -80,7 +87,7 @@ class HomeViewModel(
             try {
                 groupRepository.createGroup(name, screenTimeGoal, stake)
                 hideCreateGroupDialog()
-                loadGroups()
+                loadHomeData()
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to create group")
             }
@@ -92,7 +99,7 @@ class HomeViewModel(
             try {
                 groupRepository.joinGroup(code)
                 hideJoinGroupDialog()
-                loadGroups()
+                loadHomeData()
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to join group")
             }
@@ -104,6 +111,7 @@ class HomeViewModel(
             try {
                 screenTimeRepository.enterScreenTime(screenTime)
                 hideEnterScreenTimeDialog()
+                loadHomeData()
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to enter screen time")
             }

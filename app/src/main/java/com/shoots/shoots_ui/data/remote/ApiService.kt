@@ -65,4 +65,7 @@ interface ApiService {
 
     @POST("screenTime")
     suspend fun enterScreenTime(@Body request: CreateScreenTimeRequest): ScreenTimeResponse
+
+    @GET("screenTime")
+    suspend fun getSelfScreenTime(): ScreenTimeResponse
 }

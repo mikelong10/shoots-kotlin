@@ -144,6 +144,10 @@ fun HomeScreen(
                     }
 
                     is HomeState.Success -> {
+                        if (homeState.screenTime != null) {
+                            ScreenTimeCard(screenTime = homeState.screenTime.submitted_time)
+                        }
+
                         if (homeState.groups.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -193,7 +197,7 @@ fun HomeScreen(
                                 modifier = Modifier.padding(16.dp)
                             )
                             Button(
-                                onClick = { viewModel.loadGroups() },
+                                onClick = { viewModel.loadHomeData() },
                                 modifier = Modifier.padding(top = 8.dp)
                             ) {
                                 Text("Retry")
@@ -219,6 +223,26 @@ fun HomeScreen(
 @Composable
 fun Header(text: String) {
     Text(text)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScreenTimeCard(screenTime: Int?) {
+    if (screenTime != null) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("Screen Time This Week")
+                Text("$screenTime hours", style = MaterialTheme.typography.headlineSmall)
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
