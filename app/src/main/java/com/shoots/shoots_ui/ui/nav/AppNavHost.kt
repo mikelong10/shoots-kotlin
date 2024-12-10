@@ -21,6 +21,7 @@ import com.shoots.shoots_ui.ui.home.HomeViewModel
 import com.shoots.shoots_ui.ui.home.HomeViewModelFactory
 import com.shoots.shoots_ui.ui.user.UserFragment
 import com.shoots.shoots_ui.ui.group.GroupFragment
+import com.shoots.shoots_ui.ui.payouts.PayoutsPage
 
 @Composable
 fun AppNavHost(
@@ -87,8 +88,19 @@ fun AppNavHost(
             GroupFragment(
                 groupId = groupId,
                 navController = navController,
-                authModel = authViewModel
+                authModel = authViewModel,
+                onNavigateToPayouts = { groupId ->
+                    navController.navigate(NavigationItem.Payout.createRoute(groupId))
+                }
             )
+        }
+
+        composable(
+            route = NavigationItem.Payout.route,
+            arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+        ) {
+            val groupId = it.arguments?.getInt("groupId") ?: return@composable
+            PayoutsPage(groupId = groupId, navController = navController)
         }
     }
 }

@@ -11,14 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,24 +23,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -63,7 +56,8 @@ fun GroupFragment(
     viewModel: GroupViewModel = viewModel(
         factory = GroupViewModelFactory(LocalContext.current, groupId)
     ),
-    authModel: AuthViewModel
+    authModel: AuthViewModel,
+    onNavigateToPayouts: (Int) -> Unit
 ) {
     val groupState by viewModel.groupState.collectAsStateWithLifecycle()
     val isHistoricalView by viewModel.isHistoricalView.collectAsStateWithLifecycle()
@@ -75,7 +69,8 @@ fun GroupFragment(
         onToggleHistoricalView = viewModel::toggleHistoricalView,
         onNavigateBack = { navController.popBackStack() },
         onJoinGroup = viewModel::joinGroup,
-        authState = authState
+        authState = authState,
+        onNavigateToPayouts = onNavigateToPayouts
     )
 }
 
@@ -87,7 +82,8 @@ fun GroupScreen(
     onToggleHistoricalView: () -> Unit,
     onNavigateBack: () -> Unit,
     onJoinGroup: (String) -> Unit,
-    authState: AuthState
+    authState: AuthState,
+    onNavigateToPayouts: (Int) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -122,55 +118,67 @@ fun GroupScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 is GroupState.Success -> {
                     when (val state = authState) {
                         is AuthState.Authenticated -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        if (groupState.members.filter({ user -> state.user.id == user.id }).isNotEmpty()) {
-                            Text(
-                                text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.padding(bottom = 2.dp)
-                            )
-                            Text("Invite Code: " + groupState.group.code, modifier = Modifier.padding(bottom = 16.dp))
-                        } else {
-                            Text(
-                                text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                        }
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                            ) {
+                                if (groupState.members.filter { user -> state.user.id == user.id }
+                                        .isNotEmpty()
+                                ) {
+                                    Text(
+                                        text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        modifier = Modifier.padding(bottom = 2.dp)
+                                    )
+                                    Text(
+                                        "Invite Code: " + groupState.group.code,
+                                        modifier = Modifier.padding(bottom = 16.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        modifier = Modifier.padding(bottom = 16.dp)
+                                    )
+                                }
 
-                        if (isHistoricalView) {
-                            if (groupState.historicalRankings.isEmpty()) NoEntriesCard()
-                            HistoricalRankingsList(historicalRankings = groupState.historicalRankings)
-                        } else {
-                            if (groupState.weeklyRankings.isEmpty()) NoEntriesCard()
-                            LeaderboardList(rankings = groupState.weeklyRankings)
-                        }
-                    }
-                            if (groupState.members.filter({ user -> state.user.id == user.id }).isEmpty()) {
+                                if (isHistoricalView) {
+                                    if (groupState.historicalRankings.isEmpty()) NoEntriesCard()
+                                    HistoricalRankingsList(historicalRankings = groupState.historicalRankings)
+                                } else {
+                                    if (groupState.weeklyRankings.isEmpty()) NoEntriesCard()
+                                    LeaderboardList(rankings = groupState.weeklyRankings)
+                                }
+                            }
+                            if (groupState.members.filter { user -> state.user.id == user.id }
+                                    .isNotEmpty()
+                            ) {
                                 Button(
-                                    onClick = { onJoinGroup(groupState.group.code) },
+                                    onClick = { onNavigateToPayouts(groupState.group.id) },
                                     modifier = Modifier
                                         .align(Alignment.BottomCenter)
-                                        .padding(16.dp),
-                                    colors = ButtonColors(
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.tertiary,
                                         contentColor = MaterialTheme.colorScheme.onTertiary,
                                         disabledContainerColor = MaterialTheme.colorScheme.surfaceDim,
                                         disabledContentColor = MaterialTheme.colorScheme.onTertiary
                                     )
                                 ) {
-                                    Text("Join Group")
+                                    Text(
+                                        "Complete Week",
+                                        fontSize = 18.sp,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    )
                                 }
                             }
-
-                    }
+                        }
 
                         is AuthState.Error -> TODO()
                         AuthState.Initial -> TODO()
@@ -178,6 +186,7 @@ fun GroupScreen(
                         AuthState.NotAuthenticated -> TODO()
                     }
                 }
+
                 is GroupState.Error -> {
                     Column(
                         modifier = Modifier
@@ -254,7 +263,7 @@ fun WeeklyLeaderboard(week: String, rankings: List<Ranking>) {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
             inputFormat.timeZone = TimeZone.getTimeZone("UTC")
             val date = inputFormat.parse(week)
-            
+
             val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
             "Week of ${outputFormat.format(date)}"
         } catch (e: Exception) {
@@ -324,7 +333,7 @@ fun LeaderboardItem(ranking: Ranking) {
         3 -> bronzeColor
         else -> containerColors[(ranking.rank - 4) % containerColors.size]
     }
-    
+
     // Determine if this is a medal position
     val isMedalPosition = ranking.rank <= 3
 
