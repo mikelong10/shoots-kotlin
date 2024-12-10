@@ -7,6 +7,7 @@ import com.shoots.shoots_ui.data.model.RegisterRequest
 import com.shoots.shoots_ui.data.model.User
 import com.shoots.shoots_ui.data.remote.ApiService
 import com.shoots.shoots_ui.data.remote.GoogleAuthRequest
+import com.shoots.shoots_ui.data.remote.NetworkModule
 
 class AuthRepository(
     private val apiService: ApiService,
@@ -55,7 +56,16 @@ class AuthRepository(
     }
 
     suspend fun logout() {
-        println("Logging out, clearing user from Room") // Debug log
-        userDao.deleteUser()
+        try {
+            // Call logout endpoint
+            apiService.logout()
+        } catch (e: Exception) {
+            println("Error calling logout endpoint: ${e.message}")
+        } finally {
+            // Clear local data regardless of API call success
+            println("Logging out, clearing user data") // Debug log
+            userDao.deleteUser()
+            NetworkModule.clearCookies()
+        }
     }
 }

@@ -13,11 +13,10 @@ import kotlinx.coroutines.launch
 sealed class HomeState {
     object Loading : HomeState()
     data class Success(
-        val groups: List<Group>,
+        val groups: List<Group>, 
         val myGroups: List<Group>,
         val screenTime: ScreenTime?
     ) : HomeState()
-
     data class Error(val message: String) : HomeState()
 }
 
@@ -43,16 +42,34 @@ class HomeViewModel(
 
     fun loadHomeData() {
         viewModelScope.launch {
+            println("DEBUG: Starting to load home data")
             _homeState.value = HomeState.Loading
             try {
-                var groups = groupRepository.listGroups()
+                // First get my groups to ensure we have the latest data
+                println("DEBUG: Fetching my groups")
                 val myGroups = groupRepository.listMyGroups()
-                val groupIDs = myGroups.map { it.id }.toSet()
-                groups = groups.filter { it.id !in groupIDs }
+                println("DEBUG: My groups fetched: ${myGroups.map { it.id }}")
+                val myGroupIds = myGroups.map { it.id }.toSet()
+
+                // Then get all groups and filter out my groups
+                println("DEBUG: Fetching all groups")
+                val allGroups = groupRepository.listGroups()
+                println("DEBUG: All groups fetched: ${allGroups.map { it.id }}")
+                val availableGroups = allGroups.filterNot { it.id in myGroupIds }
+                println("DEBUG: Available groups after filtering: ${availableGroups.map { it.id }}")
+
+                // Finally get screen time
+                println("DEBUG: Fetching screen time")
                 val screenTime = screenTimeRepository.getSelfScreenTime()
 
-                _homeState.value = HomeState.Success(groups, myGroups, screenTime)
+                _homeState.value = HomeState.Success(
+                    groups = availableGroups,
+                    myGroups = myGroups,
+                    screenTime = screenTime
+                )
+                println("DEBUG: Home data loaded successfully")
             } catch (e: Exception) {
+                println("DEBUG: Error loading home data: ${e.message}")
                 _homeState.value = HomeState.Error(e.message ?: "Failed to load groups")
             }
         }
@@ -85,9 +102,15 @@ class HomeViewModel(
     fun createGroup(name: String, screenTimeGoal: Int, stake: Double) {
         viewModelScope.launch {
             try {
-                groupRepository.createGroup(name, screenTimeGoal, stake)
+                val newGroup = groupRepository.createGroup(name, screenTimeGoal, stake)
                 hideCreateGroupDialog()
-                loadHomeData()
+                
+                val currentState = _homeState.value
+                if (currentState is HomeState.Success) {
+                    _homeState.value = currentState.copy(
+                        myGroups = currentState.myGroups + newGroup
+                    )
+                }
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to create group")
             }
@@ -97,10 +120,15 @@ class HomeViewModel(
     fun joinGroup(code: String) {
         viewModelScope.launch {
             try {
-                groupRepository.joinGroup(code)
+                println("DEBUG: Attempting to join group with code: $code")
+                val joinedGroup = groupRepository.joinGroup(code)
+                println("DEBUG: Successfully joined group: ${joinedGroup.id}")
                 hideJoinGroupDialog()
+                
+                println("DEBUG: Reloading home data after joining group")
                 loadHomeData()
             } catch (e: Exception) {
+                println("DEBUG: Error joining group: ${e.message}")
                 _homeState.value = HomeState.Error(e.message ?: "Failed to join group")
             }
         }

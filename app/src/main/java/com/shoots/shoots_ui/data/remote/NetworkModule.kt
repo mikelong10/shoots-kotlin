@@ -32,6 +32,12 @@ object NetworkModule {
     val apiService: ApiService 
         get() = _apiService
 
+    fun clearCookies() {
+        cookieJar?.clearCookies()
+        // Recreate the API service with a fresh cookie jar
+        _apiService = createAuthenticatedApiService()
+    }
+
     private fun createDefaultApiService(): ApiService {
         val client = OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)

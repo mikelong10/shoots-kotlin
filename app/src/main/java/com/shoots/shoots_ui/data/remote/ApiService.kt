@@ -13,15 +13,17 @@ import com.shoots.shoots_ui.data.model.LoginResponse
 import com.shoots.shoots_ui.data.model.RankingsResponse
 import com.shoots.shoots_ui.data.model.RegisterRequest
 import com.shoots.shoots_ui.data.model.RegisterResponse
-import com.shoots.shoots_ui.data.model.ScreenTimeResponse
 import com.shoots.shoots_ui.data.model.ScreenTimeListResponse
+import com.shoots.shoots_ui.data.model.ScreenTimeResponse
 import com.shoots.shoots_ui.data.model.UserResponse
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 data class GoogleAuthRequest(
     val idToken: String
@@ -41,6 +43,9 @@ interface ApiService {
     @POST("auth/register")
     suspend fun register(@Body registerRequest: RegisterRequest): RegisterResponse
 
+    @DELETE("auth/logout")
+    suspend fun logout(): ApiResponse<Unit>
+
     @GET("user")
     suspend fun getSelf(): UserResponse
 
@@ -51,9 +56,8 @@ interface ApiService {
     @GET("groups")
     suspend fun listGroups(): GroupsResponse
 
-    // Group endpoints
-    @GET("groups?self=true")
-    suspend fun listMyGroups(): GroupsResponse
+    @GET("groups")
+    suspend fun listMyGroups(@Query("self") self: Boolean = true): GroupsResponse
 
     @GET("groups/{id}")
     suspend fun getGroup(@Path("id") id: Int): GroupResponse
