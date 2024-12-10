@@ -56,6 +56,7 @@ import com.shoots.shoots_ui.data.model.UserHistoricalRankings
 import com.shoots.shoots_ui.ui.auth.AuthState
 import com.shoots.shoots_ui.ui.auth.AuthViewModel
 import com.shoots.shoots_ui.ui.formatDisplayScreenTime
+import com.shoots.shoots_ui.ui.home.HomeViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -67,12 +68,13 @@ fun GroupFragment(
     viewModel: GroupViewModel = viewModel(
         factory = GroupViewModelFactory(LocalContext.current, groupId)
     ),
+    homeViewModel: HomeViewModel,
     authModel: AuthViewModel
 ) {
     val groupState by viewModel.groupState.collectAsStateWithLifecycle()
     val isHistoricalView by viewModel.isHistoricalView.collectAsStateWithLifecycle()
     val authState by authModel.authState.collectAsStateWithLifecycle()
-    val isEnterScreenTimeDialogVisible by viewModel.isEnterScreenTimeDialogVisible.collectAsStateWithLifecycle()
+    val isEnterScreenTimeDialogVisible by homeViewModel.isEnterScreenTimeDialogVisible.collectAsStateWithLifecycle()
 
     GroupScreen(
         groupState = groupState,
@@ -80,15 +82,18 @@ fun GroupFragment(
         onToggleHistoricalView = viewModel::toggleHistoricalView,
         onNavigateBack = { navController.popBackStack() },
         onJoinGroup = viewModel::joinGroup,
-        onAddScreenTime = viewModel::showEnterScreenTimeDialog,
+        onAddScreenTime = homeViewModel::showEnterScreenTimeDialog,
         authState = authState
     )
 
     if (isEnterScreenTimeDialogVisible) {
         com.shoots.shoots_ui.ui.home.EnterScreenTimeDialog(
             onDismiss =
-            viewModel::hideEnterScreenTimeDialog,
-            onEnter = viewModel::enterScreenTime
+            homeViewModel::hideEnterScreenTimeDialog,
+            onEnter = { time: Int ->
+                homeViewModel.enterScreenTime(time)
+                viewModel.loadGroupData()
+            }
         )
     }
 }

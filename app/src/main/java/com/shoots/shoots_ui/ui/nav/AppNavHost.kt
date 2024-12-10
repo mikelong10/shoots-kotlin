@@ -28,6 +28,7 @@ fun AppNavHost(
     startDestination: String = NavigationItem.Auth.route
 ) {
     val context = LocalContext.current
+    val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(context))
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(context))
     val authState by authViewModel.authState.collectAsState()
 
@@ -87,7 +88,8 @@ fun AppNavHost(
             GroupFragment(
                 groupId = groupId,
                 navController = navController,
-                authModel = authViewModel
+                authModel = authViewModel,
+                homeViewModel = homeViewModel,
             )
         }
     }
