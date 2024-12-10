@@ -47,6 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.shoots.shoots_ui.data.model.Ranking
 import com.shoots.shoots_ui.data.model.UserHistoricalRankings
+import com.shoots.shoots_ui.ui.formatDisplayScreenTime
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -300,7 +301,7 @@ fun LeaderboardItem(ranking: Ranking) {
                 )
             }
             Text(
-                text = "%.1f min".format(ranking.time),
+                text = formatDisplayScreenTime(ranking.time),
                 style = MaterialTheme.typography.titleMedium,
                 color = if (isMedalPosition) {
                     Color.Black

@@ -68,13 +68,13 @@ data class CreateScreenTimeRequest(
 data class Ranking(
     val rank: Int,
     val user: User,
-    val time: Double
+    val time: Int
 )
 
 data class WeekRanking(
     val rank: Int,
     val week: String,
-    val time: Double
+    val time: Int
 )
 
 data class UserHistoricalRankings(
