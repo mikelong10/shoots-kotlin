@@ -2,6 +2,7 @@ package com.shoots.shoots_ui.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.shoots.shoots_ui.data.model.GroupEntity
 
 @Database(
     entities = [UserEntity::class, GroupEntity::class],
