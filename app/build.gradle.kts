@@ -22,7 +22,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_URL", "\"http://192.168.1.170:3000/\"")
+            buildConfigField("String", "API_URL", "\"http://10.0.0.164:3000/\"")
             buildConfigField("String", "GOOGLE_CLIENT_ID", "\"697607574955-h622i8vloo6ldr0r15vahvu4iandgvve.apps.googleusercontent.com\"")
         }
         release {

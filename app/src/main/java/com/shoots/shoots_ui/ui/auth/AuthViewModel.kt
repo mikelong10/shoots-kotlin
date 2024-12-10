@@ -2,14 +2,8 @@ package com.shoots.shoots_ui.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.shoots.shoots_ui.data.local.UserDao
-import com.shoots.shoots_ui.data.local.UserEntity
-import com.shoots.shoots_ui.data.model.LoginRequest
-import com.shoots.shoots_ui.data.model.LoginResponse
-import com.shoots.shoots_ui.data.model.RegisterRequest
 import com.shoots.shoots_ui.data.model.User
-import com.shoots.shoots_ui.data.remote.ApiService
-import com.shoots.shoots_ui.data.remote.GoogleAuthRequest
+import com.shoots.shoots_ui.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,28 +17,28 @@ sealed class AuthState {
 }
 
 class AuthViewModel(
-    private val apiService: ApiService,
-    private val userDao: UserDao
+    private val repository: AuthRepository
 ) : ViewModel() {
+
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
     val authState: StateFlow<AuthState> = _authState
 
     init {
-        checkLocalUser()
+        checkAuthState()
     }
 
-    private fun checkLocalUser() {
+    private fun checkAuthState() {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
-                val user = userDao.getUser()
-                if (user != null) {
-                    _authState.value = AuthState.Authenticated(user.toUser())
+                val user = repository.getUser()
+                _authState.value = if (user != null) {
+                    AuthState.Authenticated(user)
                 } else {
-                    _authState.value = AuthState.NotAuthenticated
+                    AuthState.NotAuthenticated
                 }
             } catch (e: Exception) {
-                _authState.value = AuthState.NotAuthenticated
+                _authState.value = AuthState.Error(e.message ?: "Unknown error occurred")
             }
         }
     }
@@ -53,17 +47,10 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 _authState.value = AuthState.Loading
-                val response = apiService.login(LoginRequest(email, password))
-                if (response.success) {
-                    println(response)
-                    val userEntity = UserEntity.fromAuthData(response.data)
-                    userDao.insertUser(userEntity)
-                    _authState.value = AuthState.Authenticated(response.data.user)
-                } else {
-                    _authState.value = AuthState.Error(response.message)
-                }
+                val user = repository.login(email, password)
+                _authState.value = AuthState.Authenticated(user)
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Unknown error occurred")
+                _authState.value = AuthState.Error(e.message ?: "Login failed")
             }
         }
     }
@@ -72,16 +59,10 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 _authState.value = AuthState.Loading
-                val response = apiService.register(RegisterRequest(email, password, name))
-                if (response.success) {
-                    val userEntity = UserEntity.fromAuthData(response.data)
-                    userDao.insertUser(userEntity)
-                    _authState.value = AuthState.Authenticated(response.data.user)
-                } else {
-                    _authState.value = AuthState.Error(response.message)
-                }
+                val user = repository.register(email, password, name)
+                _authState.value = AuthState.Authenticated(user)
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Unknown error occurred")
+                _authState.value = AuthState.Error(e.message ?: "Registration failed")
             }
         }
     }
@@ -90,43 +71,22 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 _authState.value = AuthState.Loading
-                val response = apiService.googleAuth(GoogleAuthRequest(idToken))
-                if (response.success) {
-                    val userEntity = UserEntity.fromAuthData(response.data)
-                    userDao.insertUser(userEntity)
-                    _authState.value = AuthState.Authenticated(response.data.user)
-                } else {
-                    _authState.value = AuthState.Error(response.message)
-                }
+                val user = repository.googleAuth(idToken)
+                _authState.value = AuthState.Authenticated(user)
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Unknown error occurred")
+                _authState.value = AuthState.Error(e.message ?: "Google sign in failed")
             }
         }
     }
 
-    private suspend fun saveUserLocally(response: LoginResponse) {
-        userDao.insertUser(
-            UserEntity(
-                id = response.data.user.id,
-                email = response.data.user.email,
-                name = response.data.user.name,
-                profilePicture = response.data.user.profile_picture,
-                accessToken = response.data.accessToken,
-                refreshToken = response.data.refreshToken,
-                insertedAt = response.data.user.inserted_at,
-                updatedAt = response.data.user.updated_at
-            )
-        )
+    fun logout() {
+        viewModelScope.launch {
+            repository.logout()
+            _authState.value = AuthState.NotAuthenticated
+        }
     }
 
     fun updateAuthState(state: AuthState) {
         _authState.value = state
-    }
-
-    fun logout() {
-        viewModelScope.launch {
-            userDao.deleteUser()
-            _authState.value = AuthState.NotAuthenticated
-        }
     }
 }
