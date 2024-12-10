@@ -4,11 +4,14 @@ import com.shoots.shoots_ui.data.model.ApiResponse
 import com.shoots.shoots_ui.data.model.CreateGroupRequest
 import com.shoots.shoots_ui.data.model.GroupResponse
 import com.shoots.shoots_ui.data.model.GroupsResponse
+import com.shoots.shoots_ui.data.model.HistoricalRankingsResponse
 import com.shoots.shoots_ui.data.model.JoinGroupRequest
 import com.shoots.shoots_ui.data.model.LoginRequest
 import com.shoots.shoots_ui.data.model.LoginResponse
+import com.shoots.shoots_ui.data.model.RankingsResponse
 import com.shoots.shoots_ui.data.model.RegisterRequest
 import com.shoots.shoots_ui.data.model.RegisterResponse
+import com.shoots.shoots_ui.data.model.ScreenTimeResponse
 import com.shoots.shoots_ui.data.model.UserResponse
 import retrofit2.Call
 import retrofit2.http.Body
@@ -52,6 +55,15 @@ interface ApiService {
     @GET("groups/{id}")
     suspend fun getGroup(@Path("id") id: Int): GroupResponse
 
+    @GET("groups/{id}/time")
+    suspend fun getGroupScreenTime(@Path("id") id: Int): ScreenTimeResponse
+
+    @GET("groups/{id}/rankings")
+    suspend fun getWeeklyRankings(@Path("id") id: Int): RankingsResponse
+
+    @GET("groups/{id}/historical")
+    suspend fun getHistoricalRankings(@Path("id") id: Int): HistoricalRankingsResponse
+
     @POST("groups")
     suspend fun createGroup(@Body request: CreateGroupRequest): GroupResponse
 
@@ -60,4 +72,7 @@ interface ApiService {
 
     @PUT("groups/join")
     suspend fun joinGroup(@Body request: JoinGroupRequest): GroupResponse
+
+    @POST("groups/{id}/time")
+    suspend fun addScreenTime(@Path("id") id: Int, @Body time: Double): ScreenTimeResponse
 }

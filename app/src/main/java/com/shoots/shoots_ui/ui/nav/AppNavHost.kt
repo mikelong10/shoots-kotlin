@@ -20,6 +20,7 @@ import com.shoots.shoots_ui.ui.home.HomeFragment
 import com.shoots.shoots_ui.ui.home.HomeViewModel
 import com.shoots.shoots_ui.ui.home.HomeViewModelFactory
 import com.shoots.shoots_ui.ui.user.UserFragment
+import com.shoots.shoots_ui.ui.group.GroupFragment
 
 @Composable
 fun AppNavHost(
@@ -79,7 +80,11 @@ fun AppNavHost(
             route = NavigationItem.Group.route,
             arguments = listOf(navArgument("groupId") { type = NavType.IntType })
         ) {
-            // Group screen will be implemented later
+            val groupId = it.arguments?.getInt("groupId") ?: return@composable
+            GroupFragment(
+                groupId = groupId,
+                navController = navController
+            )
         }
     }
 }

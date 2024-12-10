@@ -54,9 +54,38 @@ data class JoinGroupRequest(
     val code: String
 )
 
+data class ScreenTime(
+    val id: Int,
+    val user_id: Int,
+    val group_id: Int,
+    val submitted_time: Double,
+    val inserted_at: String,
+    val user: User?
+)
+
+data class Ranking(
+    val rank: Int,
+    val user: User,
+    val time: Double
+)
+
+data class WeekRanking(
+    val rank: Int,
+    val week: String,
+    val time: Double
+)
+
+data class UserHistoricalRankings(
+    val user: User,
+    val weekRankings: List<WeekRanking>
+)
+
 // Type aliases for common response types
 typealias LoginResponse = ApiResponse<AuthData>
 typealias RegisterResponse = ApiResponse<AuthData>
 typealias UserResponse = ApiResponse<User>
 typealias GroupResponse = ApiResponse<Group>
 typealias GroupsResponse = ApiResponse<List<Group>>
+typealias ScreenTimeResponse = ApiResponse<List<ScreenTime>>
+typealias RankingsResponse = ApiResponse<List<Ranking>>
+typealias HistoricalRankingsResponse = ApiResponse<List<UserHistoricalRankings>>
