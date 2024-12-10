@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
@@ -26,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -35,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.shoots.shoots_ui.R
 import com.shoots.shoots_ui.data.model.Ranking
 import com.shoots.shoots_ui.ui.formatUSD
@@ -172,6 +177,7 @@ fun PayoutsList(
     }
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PayoutItem(rank: Ranking, payout: Double, navController: NavController, isWinner: Boolean) {
     val cardColor =
@@ -184,7 +190,9 @@ fun PayoutItem(rank: Ranking, payout: Double, navController: NavController, isWi
         Row(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
                 modifier = Modifier.weight(1f),
@@ -197,7 +205,43 @@ fun PayoutItem(rank: Ranking, payout: Double, navController: NavController, isWi
                     fontWeight = FontWeight.Bold
                 )
             }
-            Text("Payout: $payout", style = MaterialTheme.typography.bodyLarge)
+            if (isWinner) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    GlideImage(
+                        model = "https://cdn-icons-png.flaticon.com/512/5501/5501360.png",
+                        contentDescription = "Earnings",
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape),
+                    )
+                    Text(
+                        formatUSD(payout),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = colorResource(R.color.dark_green)
+                    )
+                }
+            } else {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    GlideImage(
+                        model = "https://media.istockphoto.com/id/959957308/vector/money-loss-vector-illustration-flat-cartoon-cash-with-down-arrow-stocks-graph-concept-of.jpg?s=612x612&w=0&k=20&c=HQLE9KYuUiXfHiuYZX7MTVPviDwY96g72gCBWZXsfhg%3D",
+                        contentDescription = "Earnings",
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape),
+                    )
+                    Text(
+                        formatUSD(payout * -1),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = colorResource(R.color.dark_red)
+                    )
+                }
+            }
         }
     }
 }

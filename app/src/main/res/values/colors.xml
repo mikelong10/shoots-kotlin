@@ -10,8 +10,8 @@
     <color name="gold">#FFFFD700</color>
     <color name="silver">#FFC0C0C0</color>
     <color name="bronze">#FFCD7F32</color>
-    <color name="dark_green">#084704</color>
-    <color name="light_green">#A8DAA5</color>
-    <color name="dark_red">#800B0B</color>
-    <color name="light_red">#EBBEBE</color>
+    <color name="dark_green">#0D7906</color>
+    <color name="light_green">#C7EAC5</color>
+    <color name="dark_red">#9B0E0E</color>
+    <color name="light_red">#EDD1D1</color>
 </resources>
