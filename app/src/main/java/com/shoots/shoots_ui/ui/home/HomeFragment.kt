@@ -149,12 +149,14 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.verticalScroll(scrollState)
                         ) {
-                            Header("My Groups")
-                            homeState.myGroups.forEach { group ->
-                                GroupCard(
-                                    group = group,
-                                    onClick = { onGroupClick(group.id) }
-                                )
+                            if (homeState.myGroups.isNotEmpty()) {
+                                Header("My Groups")
+                                homeState.myGroups.forEach { group ->
+                                    GroupCard(
+                                        group = group,
+                                        onClick = { onGroupClick(group.id) }
+                                    )
+                                }
                             }
                             Header("Available Groups")
                             homeState.groups.forEach { group ->
