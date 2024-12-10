@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shoots.shoots_ui.data.model.Group
 import com.shoots.shoots_ui.data.repository.GroupRepository
+import com.shoots.shoots_ui.data.repository.ScreenTimeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,7 +16,8 @@ sealed class HomeState {
 }
 
 class HomeViewModel(
-    private val repository: GroupRepository
+    private val groupRepository: GroupRepository,
+    private val screenTimeRepository: ScreenTimeRepository
 ) : ViewModel() {
     private val _homeState = MutableStateFlow<HomeState>(HomeState.Loading)
     val homeState: StateFlow<HomeState> = _homeState
@@ -26,6 +28,9 @@ class HomeViewModel(
     private val _isJoinGroupDialogVisible = MutableStateFlow(false)
     val isJoinGroupDialogVisible: StateFlow<Boolean> = _isJoinGroupDialogVisible
 
+    private val _isEnterScreenTimeDialogVisible = MutableStateFlow(false)
+    val isEnterScreenTimeDialogVisible: StateFlow<Boolean> = _isEnterScreenTimeDialogVisible
+
     init {
         loadGroups()
     }
@@ -34,8 +39,8 @@ class HomeViewModel(
         viewModelScope.launch {
             _homeState.value = HomeState.Loading
             try {
-                var groups = repository.listGroups()
-                val myGroups = repository.listMyGroups()
+                var groups = groupRepository.listGroups()
+                val myGroups = groupRepository.listMyGroups()
                 val groupIDs = myGroups.map { it.id }.toSet()
                 groups = groups.filter { it.id !in groupIDs }
 
@@ -62,10 +67,18 @@ class HomeViewModel(
         _isJoinGroupDialogVisible.value = false
     }
 
+    fun showEnterScreenTimeDialog() {
+        _isEnterScreenTimeDialogVisible.value = true
+    }
+
+    fun hideEnterScreenTimeDialog() {
+        _isEnterScreenTimeDialogVisible.value = false
+    }
+
     fun createGroup(name: String, screenTimeGoal: Int, stake: Double) {
         viewModelScope.launch {
             try {
-                repository.createGroup(name, screenTimeGoal, stake)
+                groupRepository.createGroup(name, screenTimeGoal, stake)
                 hideCreateGroupDialog()
                 loadGroups()
             } catch (e: Exception) {
@@ -77,11 +90,22 @@ class HomeViewModel(
     fun joinGroup(code: String) {
         viewModelScope.launch {
             try {
-                repository.joinGroup(code)
+                groupRepository.joinGroup(code)
                 hideJoinGroupDialog()
                 loadGroups()
             } catch (e: Exception) {
                 _homeState.value = HomeState.Error(e.message ?: "Failed to join group")
+            }
+        }
+    }
+
+    fun enterScreenTime(screenTime: Int) {
+        viewModelScope.launch {
+            try {
+                screenTimeRepository.enterScreenTime(screenTime)
+                hideEnterScreenTimeDialog()
+            } catch (e: Exception) {
+                _homeState.value = HomeState.Error(e.message ?: "Failed to enter screen time")
             }
         }
     }

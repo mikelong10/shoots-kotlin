@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,11 +47,13 @@ fun HomeFragment(
     val homeState by viewModel.homeState.collectAsStateWithLifecycle()
     val isCreateGroupDialogVisible by viewModel.isCreateGroupDialogVisible.collectAsStateWithLifecycle()
     val isJoinGroupDialogVisible by viewModel.isJoinGroupDialogVisible.collectAsStateWithLifecycle()
+    val isEnterScreenTimeDialogVisible by viewModel.isEnterScreenTimeDialogVisible.collectAsStateWithLifecycle()
 
     HomeScreen(
         homeState = homeState,
         onCreateGroupClick = viewModel::showCreateGroupDialog,
         onJoinGroupClick = viewModel::showJoinGroupDialog,
+        onEnterScreenTimeClick = viewModel::showEnterScreenTimeDialog,
         onGroupClick = onNavigateToGroup,
         viewModel = viewModel
     )
@@ -68,6 +71,14 @@ fun HomeFragment(
             onJoin = viewModel::joinGroup
         )
     }
+
+    if (isEnterScreenTimeDialogVisible) {
+        EnterScreenTimeDialog(
+            onDismiss =
+            viewModel::hideEnterScreenTimeDialog,
+            onEnter = viewModel::enterScreenTime
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,6 +87,7 @@ fun HomeScreen(
     homeState: HomeState,
     onCreateGroupClick: () -> Unit,
     onJoinGroupClick: () -> Unit,
+    onEnterScreenTimeClick: () -> Unit,
     onGroupClick: (Int) -> Unit,
     viewModel: HomeViewModel
 ) {
@@ -192,7 +204,7 @@ fun HomeScreen(
             }
 
             Button(
-                onClick = { /* Handle button click */ },
+                onClick = onEnterScreenTimeClick,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(16.dp)
@@ -336,6 +348,65 @@ fun JoinGroupDialog(
                 }
             ) {
                 Text("Join")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun EnterScreenTimeDialog(
+    onDismiss: () -> Unit,
+    onEnter: (Int) -> Unit
+) {
+    var screenTime by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Screen Time") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                OutlinedTextField(
+                    value = screenTime,
+                    onValueChange = { input: String ->
+                        if (input.all { it.isDigit() }) {
+                            screenTime = input
+                        }
+                    },
+                    label = { Text("Daily Average") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            if (screenTime.isNotBlank()) {
+                                onEnter(screenTime.toInt())
+                            }
+                        }
+                    )
+                )
+                Text(
+                    text = "Enter your daily average screen time for this past week",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (screenTime.isNotBlank()) {
+                        onEnter(screenTime.toInt())
+                    }
+                }
+            ) {
+                Text("Enter")
             }
         },
         dismissButton = {
