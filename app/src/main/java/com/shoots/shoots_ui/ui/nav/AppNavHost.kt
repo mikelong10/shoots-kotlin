@@ -10,11 +10,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.shoots.shoots_ui.ui.NavigationItem
-import com.shoots.shoots_ui.ui.auth.AuthContent
+import com.shoots.shoots_ui.ui.auth.AuthFragment
 import com.shoots.shoots_ui.ui.auth.AuthState
 import com.shoots.shoots_ui.ui.auth.AuthViewModel
 import com.shoots.shoots_ui.ui.auth.AuthViewModelFactory
-import com.shoots.shoots_ui.ui.user.UserContent
+import com.shoots.shoots_ui.ui.user.UserFragment
 
 @Composable
 fun AppNavHost(
@@ -49,7 +49,7 @@ fun AppNavHost(
         startDestination = startDestination
     ) {
         composable(NavigationItem.Auth.route) {
-            AuthContent(
+            AuthFragment(
                 viewModel = authViewModel,
                 onNavigateToUser = {
                     navController.navigate(NavigationItem.User.route) {
@@ -59,7 +59,7 @@ fun AppNavHost(
             )
         }
         composable(NavigationItem.User.route) {
-            UserContent(viewModel = authViewModel)
+            UserFragment(viewModel = authViewModel)
         }
     }
 }

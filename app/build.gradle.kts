@@ -31,8 +31,6 @@ android {
             buildConfigField("String", "GOOGLE_CLIENT_ID", "\"697607574955-h622i8vloo6ldr0r15vahvu4iandgvve.apps.googleusercontent.com\"")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
-
-        debug {}
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
