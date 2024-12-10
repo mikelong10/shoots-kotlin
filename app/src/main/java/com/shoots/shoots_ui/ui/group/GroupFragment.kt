@@ -17,6 +17,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +49,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.shoots.shoots_ui.data.model.Ranking
 import com.shoots.shoots_ui.data.model.UserHistoricalRankings
+import com.shoots.shoots_ui.ui.auth.AuthState
+import com.shoots.shoots_ui.ui.auth.AuthViewModel
 import com.shoots.shoots_ui.ui.formatDisplayScreenTime
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -58,16 +62,20 @@ fun GroupFragment(
     navController: NavController,
     viewModel: GroupViewModel = viewModel(
         factory = GroupViewModelFactory(LocalContext.current, groupId)
-    )
+    ),
+    authModel: AuthViewModel
 ) {
     val groupState by viewModel.groupState.collectAsStateWithLifecycle()
     val isHistoricalView by viewModel.isHistoricalView.collectAsStateWithLifecycle()
+    val authState by authModel.authState.collectAsStateWithLifecycle()
 
     GroupScreen(
         groupState = groupState,
         isHistoricalView = isHistoricalView,
         onToggleHistoricalView = viewModel::toggleHistoricalView,
-        onNavigateBack = { navController.popBackStack() }
+        onNavigateBack = { navController.popBackStack() },
+        onJoinGroup = viewModel::joinGroup,
+        authState = authState
     )
 }
 
@@ -77,7 +85,9 @@ fun GroupScreen(
     groupState: GroupState,
     isHistoricalView: Boolean,
     onToggleHistoricalView: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onJoinGroup: (String) -> Unit,
+    authState: AuthState
 ) {
     Scaffold(
         topBar = {
@@ -113,22 +123,59 @@ fun GroupScreen(
                     )
                 }
                 is GroupState.Success -> {
+                    when (val state = authState) {
+                        is AuthState.Authenticated -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
                     ) {
-                        Text(
-                            text = if (isHistoricalView) "Historical Rankings" else "Weekly Rankings",
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
+                        if (groupState.members.filter({ user -> state.user.id == user.id }).isNotEmpty()) {
+                            Text(
+                                text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.padding(bottom = 2.dp)
+                            )
+                            Text("Invite Code: " + groupState.group.code, modifier = Modifier.padding(bottom = 16.dp))
+                        } else {
+                            Text(
+                                text = if (isHistoricalView) "Historical Rankings" else "This Week's Rankings",
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                        }
 
                         if (isHistoricalView) {
+                            if (groupState.historicalRankings.isEmpty()) NoEntriesCard()
                             HistoricalRankingsList(historicalRankings = groupState.historicalRankings)
                         } else {
+                            if (groupState.weeklyRankings.isEmpty()) NoEntriesCard()
                             LeaderboardList(rankings = groupState.weeklyRankings)
                         }
+                    }
+                            if (groupState.members.filter({ user -> state.user.id == user.id }).isEmpty()) {
+                                Button(
+                                    onClick = { onJoinGroup(groupState.group.code) },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(16.dp),
+                                    colors = ButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiary,
+                                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                                        disabledContainerColor = MaterialTheme.colorScheme.surfaceDim,
+                                        disabledContentColor = MaterialTheme.colorScheme.onTertiary
+                                    )
+                                ) {
+                                    Text("Join Group")
+                                }
+                            }
+
+                    }
+
+                        is AuthState.Error -> TODO()
+                        AuthState.Initial -> TODO()
+                        AuthState.Loading -> TODO()
+                        AuthState.NotAuthenticated -> TODO()
                     }
                 }
                 is GroupState.Error -> {
@@ -147,6 +194,24 @@ fun GroupScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NoEntriesCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("No submissions yet!", style = MaterialTheme.typography.titleMedium)
         }
     }
 }

@@ -86,7 +86,8 @@ fun AppNavHost(
             val groupId = it.arguments?.getInt("groupId") ?: return@composable
             GroupFragment(
                 groupId = groupId,
-                navController = navController
+                navController = navController,
+                authModel = authViewModel
             )
         }
     }

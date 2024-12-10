@@ -5,6 +5,7 @@ import com.shoots.shoots_ui.data.model.Group
 import com.shoots.shoots_ui.data.model.JoinGroupRequest
 import com.shoots.shoots_ui.data.model.Ranking
 import com.shoots.shoots_ui.data.model.ScreenTime
+import com.shoots.shoots_ui.data.model.User
 import com.shoots.shoots_ui.data.model.UserHistoricalRankings
 import com.shoots.shoots_ui.data.remote.ApiService
 
@@ -67,6 +68,15 @@ class GroupRepository(
 
     suspend fun getGroupScreenTime(id: Int): List<ScreenTime> {
         val response = apiService.getGroupScreenTime(id)
+        if (response.success) {
+            return response.data
+        } else {
+            throw Exception(response.message)
+        }
+    }
+
+    suspend fun getGroupMembers(id: Int): List<User> {
+        val response = apiService.getGroupMembers(id)
         if (response.success) {
             return response.data
         } else {

@@ -90,5 +90,6 @@ typealias GroupResponse = ApiResponse<Group>
 typealias GroupsResponse = ApiResponse<List<Group>>
 typealias ScreenTimeResponse = ApiResponse<ScreenTime>
 typealias ScreenTimeListResponse = ApiResponse<List<ScreenTime>>
+typealias GroupMembersResponse = ApiResponse<List<User>>
 typealias RankingsResponse = ApiResponse<List<Ranking>>
 typealias HistoricalRankingsResponse = ApiResponse<List<UserHistoricalRankings>>

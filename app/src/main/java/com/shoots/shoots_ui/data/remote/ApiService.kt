@@ -3,6 +3,7 @@ package com.shoots.shoots_ui.data.remote
 import com.shoots.shoots_ui.data.model.ApiResponse
 import com.shoots.shoots_ui.data.model.CreateGroupRequest
 import com.shoots.shoots_ui.data.model.CreateScreenTimeRequest
+import com.shoots.shoots_ui.data.model.GroupMembersResponse
 import com.shoots.shoots_ui.data.model.GroupResponse
 import com.shoots.shoots_ui.data.model.GroupsResponse
 import com.shoots.shoots_ui.data.model.HistoricalRankingsResponse
@@ -59,6 +60,9 @@ interface ApiService {
 
     @GET("groups/{id}/time")
     suspend fun getGroupScreenTime(@Path("id") id: Int): ScreenTimeListResponse
+
+    @GET("groups/{id}/members")
+    suspend fun getGroupMembers(@Path("id") id: Int): GroupMembersResponse
 
     @GET("groups/{id}/rankings")
     suspend fun getWeeklyRankings(@Path("id") id: Int): RankingsResponse
