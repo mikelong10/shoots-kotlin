@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +64,11 @@ fun HomeFragment(
     val isCreateGroupDialogVisible by viewModel.isCreateGroupDialogVisible.collectAsStateWithLifecycle()
     val isJoinGroupDialogVisible by viewModel.isJoinGroupDialogVisible.collectAsStateWithLifecycle()
     val isEnterScreenTimeDialogVisible by viewModel.isEnterScreenTimeDialogVisible.collectAsStateWithLifecycle()
+
+    // Add LaunchedEffect to reload data when screen becomes active
+    LaunchedEffect(Unit) {
+        viewModel.loadHomeData()
+    }
 
     HomeScreen(
         homeState = homeState,

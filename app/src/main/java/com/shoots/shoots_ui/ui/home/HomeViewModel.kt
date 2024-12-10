@@ -42,24 +42,14 @@ class HomeViewModel(
 
     fun loadHomeData() {
         viewModelScope.launch {
-            println("DEBUG: Starting to load home data")
             _homeState.value = HomeState.Loading
             try {
-                // First get my groups to ensure we have the latest data
-                println("DEBUG: Fetching my groups")
                 val myGroups = groupRepository.listMyGroups()
-                println("DEBUG: My groups fetched: ${myGroups.map { it.id }}")
                 val myGroupIds = myGroups.map { it.id }.toSet()
 
-                // Then get all groups and filter out my groups
-                println("DEBUG: Fetching all groups")
                 val allGroups = groupRepository.listGroups()
-                println("DEBUG: All groups fetched: ${allGroups.map { it.id }}")
                 val availableGroups = allGroups.filterNot { it.id in myGroupIds }
-                println("DEBUG: Available groups after filtering: ${availableGroups.map { it.id }}")
 
-                // Finally get screen time
-                println("DEBUG: Fetching screen time")
                 val screenTime = screenTimeRepository.getSelfScreenTime()
 
                 _homeState.value = HomeState.Success(
@@ -67,9 +57,7 @@ class HomeViewModel(
                     myGroups = myGroups,
                     screenTime = screenTime
                 )
-                println("DEBUG: Home data loaded successfully")
             } catch (e: Exception) {
-                println("DEBUG: Error loading home data: ${e.message}")
                 _homeState.value = HomeState.Error(e.message ?: "Failed to load groups")
             }
         }
@@ -120,15 +108,10 @@ class HomeViewModel(
     fun joinGroup(code: String) {
         viewModelScope.launch {
             try {
-                println("DEBUG: Attempting to join group with code: $code")
-                val joinedGroup = groupRepository.joinGroup(code)
-                println("DEBUG: Successfully joined group: ${joinedGroup.id}")
+                groupRepository.joinGroup(code)
                 hideJoinGroupDialog()
-                
-                println("DEBUG: Reloading home data after joining group")
                 loadHomeData()
             } catch (e: Exception) {
-                println("DEBUG: Error joining group: ${e.message}")
                 _homeState.value = HomeState.Error(e.message ?: "Failed to join group")
             }
         }
