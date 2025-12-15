@@ -14,7 +14,7 @@ android {
         applicationId = "com.shoots.shoots_ui"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -45,7 +45,6 @@ android {
     }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.2" }
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
-    buildToolsVersion = "34.0.0"
     buildFeatures { viewBinding = true }
 }
 
